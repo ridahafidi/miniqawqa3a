@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/20 17:29:22 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/26 15:35:04 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,7 @@ void handle_pipe(t_pid *pid, t_fd *fd, char ***env, t_tree *root)
         signal(SIGQUIT, ctrl_d_handle);
         close(pfd[0]);
         fd->out = pfd[1];
-        execution(root->left, fd, env);
+        execution(root->left, fd, env, 0);
         free_exit(pid, fd);
     }
     pid->right_pid = fork();
@@ -104,13 +104,13 @@ void handle_pipe(t_pid *pid, t_fd *fd, char ***env, t_tree *root)
         signal(SIGQUIT, ctrl_d_handle);
         close(pfd[1]);
         fd->in = pfd[0];
-        execution(root->right, fd, env);
+        execution(root->right, fd, env, 0);
         free_exit(pid, fd);
     }
     close_wait(pfd, pid, fd);
 }
 
-void    execution(t_tree *root,t_fd *fd, char ***env)
+void    execution(t_tree *root,t_fd *fd, char ***env, int flag)
 {
     int pfd[2];
     t_pid *pid;
@@ -129,8 +129,8 @@ void    execution(t_tree *root,t_fd *fd, char ***env)
         handle_pipe(pid , fd, env, root);
     else if (root->type == APPEND || root->type == GREATER || root->type == LESS)
     {
-        handle_redirections(root, &fd->in, &fd->out);
-        execution(root->left, fd, env);
+        handle_redirections(root, &fd->in, &fd->out, flag);
+        execution(root->left, fd, env, 1);
         return ;
     }
 }
@@ -139,7 +139,7 @@ int    initialize(t_tree *root, t_fd *fd, char ***env)
 {
     signal(SIGINT, sigint_handler);
 	signal(SIGQUIT, ctrl_d_handle);
-    execution(root, fd, env);
+    execution(root, fd, env, 0);
     return (exit_status);
 }
 
