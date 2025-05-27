@@ -6,16 +6,19 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:39:56 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/27 21:59:12 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/27 22:30:34 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int handle_heredoc(char *delimiter)
+int handle_heredoc(char *delimiter, char **env)
 {
     int pipefd[2];
-    char *line;
+    char    *line[2];
+    char    *tmp_delimiter[2];
+    char    **expanded;
+    int     i;
 
     if (pipe(pipefd) == -1)
     {
@@ -24,24 +27,38 @@ int handle_heredoc(char *delimiter)
     }
 
     signal(SIGINT, heredoc_sigint_handler); // Handle SIGINT during heredoc
-
+    tmp_delimiter[0] = ft_strdup(delimiter);
+    tmp_delimiter[1] = NULL;
+    strip_quotes_from_tokens(tmp_delimiter, 0);
     while (1)
     {
-        line = readline("> ");
-        if (!line) // Handle EOF (Ctrl+D)
+        line[0] = readline("> ");
+        line[1] = NULL;
+        if (!line[0]) // Handle EOF (Ctrl+D)
         {
             write(STDOUT_FILENO, "\n", 1);
             break;
         }
-        if (!ft_strcmp(line, delimiter)) // Check if delimiter is matched
+        if (!ft_strcmp(line[0], tmp_delimiter[0])) // Check if delimiter is matched
         {
-            free(line);
+            // free_array(line);
             break;
         }
-        if (delimiter[0] == '\'' && delimiter[ft_strlen(delimiter)])
-        write(pipefd[1], line, ft_strlen(line)); // Write to pipe
-        write(pipefd[1], "\n", 1);
-        free(line);
+        if ((delimiter[0] == '\'' && delimiter[ft_strlen(delimiter) - 1] == '\'')  || (delimiter[0] == '\"' && delimiter[ft_strlen(delimiter) - 1] == '\"'))
+        {
+            write(pipefd[1], line[0], ft_strlen(line[0])); // Write to pipe
+            write(pipefd[1], "\n", 1);
+        }
+        else
+        {
+            //should expand $ 
+            i = 0;
+            expanded = expand(line, env, exit_status);
+            write(pipefd[1], expanded[i], ft_strlen(expanded[i])); // Write to pipe
+            write(pipefd[1], "\n", 1);
+            free_array(expanded);
+        }
+        // free_array(line);
     }
     close(pipefd[1]); // Close write end of the pipe
     signal(SIGINT, sigint_handler); // Restore default SIGINT handler
@@ -126,7 +143,7 @@ void handle_redirections(t_tree *root, int *in, int *out, int flag, char **env)
     {
         if (flag)
             return;
-        *in = handle_heredoc(root->file_name); // Use heredoc's read end
+        *in = handle_heredoc(root->file_name, env); // Use heredoc's read end
         if (*in == -1)
         {
             perror("heredoc failed");
