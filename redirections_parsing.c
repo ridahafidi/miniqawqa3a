@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/18 16:21:08 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/05/26 20:53:43 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/27 17:37:46 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,13 +50,16 @@ t_tree	*create_redirections(char *operator, char * file_name)
 	{
 		redir->type = HEREDOC;
 		redir->file_name = ft_strdup(file_name);
+		
 	}
 	return (redir);
 }
+
+
 int	check_redirection(char *token)
 {
     if (!token)
         return (0);
 	return (ft_strcmp(token, ">") == 0 || ft_strcmp(token, "<") == 0 || ft_strcmp(token,
-			">>") == 0 || ft_strncmp(token, "<<", ft_strlen("<<")) == 0);
+			">>") == 0 || ft_strcmp(token, "<<") == 0);
 }

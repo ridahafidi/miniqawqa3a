@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/21 14:03:07 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/05/26 20:38:03 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/27 16:56:46 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,33 +32,6 @@ int	check_valid_quotes(char *input)
 	}
 	if (quote != 0)
 		return (0);
-	return (1);
-}
-
-int	invalid_redirections(char **tokens)
-{
-	int	i;
-
-	i = 0;
-	while (tokens[i])
-	{
-		if (check_redirection(tokens[i]))
-		{
-
-			if (!tokens[i + 1])
-			{
-				printf("minishell: syntax error near unexpected token `newline`\n");
-				return (0);
-			}
-			if (check_redirection(tokens[i + 1]))
-			{
-				printf("minishell: syntax error near unexpected token `%s`\n",
-					tokens[i + 1]);
-				return (0);
-			}
-		}
-		i++;
-	}
 	return (1);
 }
 

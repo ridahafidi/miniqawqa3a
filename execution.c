@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/27 15:13:14 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/27 17:12:26 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ void redirecting(int in, int out)
     if (out != STDOUT_FILENO)
         close(out);
 }
+
 void    forker(t_tree *root, t_fd *fd, char ***env)
 {
     int pid;
@@ -130,8 +131,9 @@ void    execution(t_tree *root,t_fd *fd, char ***env, int flag)
         forker(root, fd , env);
     else if (root->type == PIPE)
         handle_pipe(pid , fd, env, root);
-    else if (root->type == APPEND || root->type == GREATER || root->type == LESS)
+    else if (root->type == APPEND || root->type == GREATER || root->type == LESS || root->type == HEREDOC)
     {
+        fprintf(stdout, "this is the type : %d\n", root->type);
         handle_redirections(root, &fd->in, &fd->out, flag);
         execution(root->left, fd, env, 1);
         return ;

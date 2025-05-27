@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/26 20:58:59 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/27 15:31:41 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,15 +179,12 @@ char	**expand(char **argv, char **env, int status)
 
 	if (!argv)
 		return (NULL);
-	
 	len = 0;
 	while (argv[len])
 		len++;
-	
 	expanded = malloc(sizeof(char *) * (len + 1));
 	if (!expanded)
 		return (NULL);
-	
 	i = 0;
 	while (i < len)
 	{
@@ -195,6 +192,5 @@ char	**expand(char **argv, char **env, int status)
 		i++;
 	}
 	expanded[i] = NULL;
-	
 	return (expanded);
 }

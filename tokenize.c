@@ -12,274 +12,55 @@
 
 #include "minishell.h"
 
-// splited tokenize_input func
-
-// char	**initial_tokenization(char *input)
-// {
-// 	return (ft_split(input, ' '));
-// }
-
-// int	is_quoted_token(char *token, char *quote)
-// {
-// 	int	len;
-
-// 	if (token[0] == '"' || token[0] == '\'')
-// 	{
-// 		*quote = token[0];
-// 		len = ft_strlen(token);
-// 		if (token[len - 1] == *quote && len > 1)
-// 			return (0);
-// 		return (1);
-// 	}
-// 	return (0);
-// }
-
-// int	find_quote_end(char **tokens, int start, char quote)
-// {
-// 	int	end;
-// 	int	end_len;
-
-// 	end = start;
-// 	while (tokens[end])
-// 	{
-// 		end_len = ft_strlen(tokens[end]);
-// 		if (tokens[end][end_len - 1] == quote)
-// 			break ;
-// 		end++;
-// 	}
-// 	return (end);
-// }
-
-// int	calculate_merged_length(char **tokens, int start, int end)
-// {
-// 	int	full_len;
-// 	int	k;
-
-// 	full_len = 0;
-// 	k = start;
-// 	while (k <= end)
-// 	{
-// 		full_len += ft_strlen(tokens[k]) + 1;
-// 		k++;
-// 	}
-// 	return (full_len);
-// }
-
-// char	**create_new_token_array(char **tokens, char *merged_token, int start,
-// 		int end)
-// {
-// 	int		new_size;
-// 	char	**new_tokens;
-
-// 	int i, k;
-// 	new_size = 0;
-// 	while (tokens[new_size])
-// 		new_size++;
-// 	new_size = new_size - (end - start);
-// 	new_tokens = malloc(sizeof(char *) * (new_size + 1));
-// 	if (!new_tokens)
-// 		return (NULL);
-// 	k = 0;
-// 	while (k < start)
-// 	{
-// 		new_tokens[k] = ft_strdup(tokens[k]);
-// 		k++;
-// 	}
-// 	new_tokens[start] = ft_strdup(merged_token);
-// 	k = end + 1;
-// 	i = start;
-// 	while (tokens[k])
-// 	{
-// 		new_tokens[++i] = ft_strdup(tokens[k]);
-// 		k++;
-// 	}
-// 	new_tokens[new_size] = NULL;
-// 	return (new_tokens);
-// }
-
-// void	free_token_array(char **tokens)
-// {
-// 	int	k;
-
-// 	k = 0;
-// 	while (tokens[k])
-// 	{
-// 		free(tokens[k]);
-// 		k++;
-// 	}
-// 	free(tokens);
-// }
-
-// char	**process_quotes(char **tokens)
-// {
-// 	int		i;
-// 	char	quote;
-// 	char	*merged_token;
-// 	char	**new_tokens;
-// 	int		start;
-// 	int		end;
-// 	int		full_len;
-
-// 	i = 0;
-// 	while (tokens[i])
-// 	{
-// 		if (is_quoted_token(tokens[i], &quote))
-// 		{
-// 			start = i;
-// 			end = find_quote_end(tokens, start, quote);
-// 			full_len = calculate_merged_length(tokens, start, end);
-// 			merged_token = merge_tokens(tokens, start, end);
-// 			new_tokens = create_new_token_array(tokens, merged_token, start,
-// 					end);
-// 			free_token_array(tokens);
-// 			free(merged_token);
-// 			tokens = new_tokens;
-// 		}
-// 		i++;
-// 	}
-// 	return (tokens);
-// }
-
-// char	**tokenize_input(char *input)
-// {
-// 	char	**tokens;
-
-// 	tokens = initial_tokenization(input);
-// 	if (!tokens)
-// 		return (NULL);
-// 	return (process_quotes(tokens));
-// }
-
-char	**tokenize_input(char *input)
+int is_operator_char(char c)
 {
-	int				i;
-	int				k;
-	t_token_type	token;
-	char			**new_tokens;
-	int				merged;
-	int				new_size;
-	char *insert_spaces;
-	char *stripped;
-
-	i = 0;
-	k = 0;
-	merged = 0;
-	insert_spaces = add_delimiter_spaces(input);
-	if (special_characters(input))
-		return (NULL);
-	if (check_valid_quotes(input) == 0)
-	{
-		printf("unclosed quotes");
-		return (NULL);
-	}
-	token.tokens = ft_split(insert_spaces, ' ');
-	while (token.tokens[i])
-	{
-		if (token.tokens[i][0] == '"' || token.tokens[i][0] == '\'')
-		{
-			token.quote = token.tokens[i][0];
-			token.start = i;
-			token.end = i;
-			token.len = ft_strlen(token.tokens[i]);
-			if (token.tokens[i][token.len - 1] == token.quote && token.len > 1)
-			{
-				i++;
-				continue ;
-			}
-			token.end++;
-			while (token.tokens[token.end])
-			{
-				token.end_len = ft_strlen(token.tokens[token.end]);
-				if (token.tokens[token.end][token.end_len - 1] == token.quote)
-					break ;
-				token.end++;
-			}
-			token.full_len = 0;
-			k = token.start;
-			while (k <= token.end)
-			{
-				token.full_len += ft_strlen(token.tokens[k]) + 1;
-				k++;
-			}
-			token.merged = merge_tokens(token.tokens, token.start, token.end);
-			new_size = 0;
-			while (token.tokens[new_size])
-				new_size++;
-			new_size = new_size - (token.end - token.start);
-			new_tokens = malloc(sizeof(char *) * (new_size + 1));
-			k = 0;
-			while (k < token.start)
-			{
-				new_tokens[k] = ft_strdup(token.tokens[k]);
-				k++;
-			}
-			new_tokens[token.start] = ft_strdup(token.merged);
-			k = token.end + 1;
-			while (token.tokens[k])
-			{
-				new_tokens[++token.start] = ft_strdup(token.tokens[k]);
-				k++;
-			}
-			new_tokens[new_size] = NULL;
-			k = 0;
-			while (token.tokens[k])
-			{
-				free(token.tokens[k]);
-				k++;
-			}
-			free(token.tokens);
-			token.tokens = new_tokens;
-			free(token.merged);
-			merged = 1;
-		}
-		i++;
-	}
-	i = 0;
-    while (token.tokens[i])
-    {
-        char *token_str = token.tokens[i];
-        size_t len = ft_strlen(token_str);
-
-        if (len >= 2 && 
-            ((token_str[0] == '"' && token_str[len - 1] == '"') ||
-             (token_str[0] == '\'' && token_str[len - 1] == '\'')))
-        {
-            stripped = ft_substr(token_str, 1, len - 2);
-            free(token.tokens[i]);
-            token.tokens[i] = stripped;
-        }
-        i++;
-    }
-	// if (invalid_redirections(token.tokens) == 0)
-	// {
-	// 	// free(token.tokens);
-	// 	return (NULL);
-	// }
-	if (invalid_pipe(token.tokens) == 0)
-		return (NULL);
-	return (token.tokens);
+    return (c == '<' || c == '>' || c == '|');
 }
 
-char	*merge_tokens(char **tokens, int start, int end)
+char **tokenize_input(char *input)
 {
-	char	*merged;
-	char	*tmp;
-	int		i;
+    char **tokens;
+    int i = 0, j = 0, k = 0;
+    int len = ft_strlen(input);
 
-	merged = ft_strdup("");
-	i = start;
-	while (i <= end)
-	{
-		tmp = ft_strjoin(merged, tokens[i]);
-		free(merged);
-		merged = tmp;
-		if (i != end)
-		{
-			tmp = ft_strjoin(merged, " ");
-			free(merged);
-			merged = tmp;
-		}
-		i++;
-	}
-	return (merged);
+    tokens = malloc(sizeof(char *) * (len + 1)); // Allocate memory for tokens
+    if (!tokens)
+        return (NULL);
+
+    while (input[i])
+    {
+        // Skip whitespace
+        if (input[i] == ' ')
+        {
+            i++;
+            continue;
+        }
+
+        // Handle multi-character operators like "<<", ">>"
+        if (is_operator_char(input[i]))
+        {
+            if ((input[i] == '<' && input[i + 1] == '<') || 
+                (input[i] == '>' && input[i + 1] == '>'))
+            {
+                tokens[j++] = ft_substr(input, i, 2); // Extract "<<"/">>"
+                i += 2;
+            }
+            else
+            {
+                tokens[j++] = ft_substr(input, i, 1); // Extract single operator
+                i++;
+            }
+            continue;
+        }
+
+        // Handle regular tokens (e.g., "cat", "x")
+        k = i;
+        while (input[k] && !is_operator_char(input[k]) && input[k] != ' ')
+            k++;
+        tokens[j++] = ft_substr(input, i, k - i); // Extract token
+        i = k;
+    }
+
+    tokens[j] = NULL; // Null-terminate the token array
+    return tokens;
 }
