@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:39:56 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/27 22:30:34 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/27 22:46:55 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,7 @@ int handle_heredoc(char *delimiter, char **env)
             break;
         }
         if (!ft_strcmp(line[0], tmp_delimiter[0])) // Check if delimiter is matched
-        {
-            // free_array(line);
             break;
-        }
         if ((delimiter[0] == '\'' && delimiter[ft_strlen(delimiter) - 1] == '\'')  || (delimiter[0] == '\"' && delimiter[ft_strlen(delimiter) - 1] == '\"'))
         {
             write(pipefd[1], line[0], ft_strlen(line[0])); // Write to pipe
@@ -51,14 +48,11 @@ int handle_heredoc(char *delimiter, char **env)
         }
         else
         {
-            //should expand $ 
-            i = 0;
             expanded = expand(line, env, exit_status);
-            write(pipefd[1], expanded[i], ft_strlen(expanded[i])); // Write to pipe
+            write(pipefd[1], expanded[0], ft_strlen(expanded[0])); // Write to pipe
             write(pipefd[1], "\n", 1);
             free_array(expanded);
         }
-        // free_array(line);
     }
     close(pipefd[1]); // Close write end of the pipe
     signal(SIGINT, sigint_handler); // Restore default SIGINT handler

@@ -20,6 +20,7 @@
 # include <stdlib.h>
 # include <string.h>
 # include <unistd.h>
+# include "minishell.h"
 
 typedef struct s_token_type
 {
@@ -52,6 +53,7 @@ typedef struct s_tree
 	type			type;
 }					t_tree;
 
+int					is_operator_char(char c);
 char				**tokenize_input(char *input);
 char				*merge_tokens(char **tokens, int start, int end);
 t_tree				*create_command(void);
