@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:24:33 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/05/19 19:47:40 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/26 20:53:16 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,11 +35,12 @@ typedef struct s_token_type
 
 typedef enum type
 {
-	COMMAND,  // cmd
-	LESS,     // <
-	GREATER,  // >
-	APPEND,   // >>
-	PIPE,     // |
+	COMMAND, // cmd
+	LESS,    // <
+	GREATER, // >
+	APPEND,  // >>
+	PIPE,    // |
+	HEREDOC,  // <<
 }					type;
 
 typedef struct s_tree
@@ -54,7 +55,7 @@ typedef struct s_tree
 char				**tokenize_input(char *input);
 char				*merge_tokens(char **tokens, int start, int end);
 t_tree				*create_command(void);
-void print_tree(t_tree *root);
+void				print_tree(t_tree *root);
 int					is_redirections(char *tokens);
 t_tree				*create_redirections(char *operator, char * file_name);
 t_tree				*parse_tokens(char **tokens);
@@ -73,6 +74,14 @@ int					calculate_merged_length(char **tokens, int start, int end);
 int					find_quote_end(char **tokens, int start, char quote);
 int					is_quoted_token(char *token, char *quote);
 char				**initial_tokenization(char *input);
-char	*add_delimiter_spaces(char *input);
+char				*add_delimiter_spaces(char *input);
+int					check_valid_quotes(char *input);
+int					invalid_redirections(char **tokens);
+int					check_redirection(char *token);
+int 				is_pipe(char *token);
+int					invalid_pipe(char **tokens);
+int					ft_strcmp(char *s1, char *s2);
+int					invalid_parenthese(char *input);
+int					special_characters(char *input);
 
 #endif

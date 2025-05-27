@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 17:21:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/20 17:24:02 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/27 15:09:35 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,8 +46,6 @@ int compare_var_env(char *arg, char **env)
 
     i = 0;
     found = 0;
-    if (arg[i] == '?')
-        return (-2);
     while (env[i])
     {
         j = 0;
@@ -80,45 +78,22 @@ int find_start(char *s)
     }   
     return(0); 
 }
-int    hanlde_index (int index, char ***env, int status)
-{
-    if (index == -2)
-    {
-        ft_putnbr_fd(status, STDOUT_FILENO);
-        return (EXIT_SUCCESS);
-    }
-    else if (index != -1)
-    {
-        char *str = ft_substr(env[0][index], find_start(env[0][index]), ft_strlen(env[0][index]));
-        ft_putstr_fd(str, STDOUT_FILENO);
-        return (EXIT_SUCCESS);
-    }
-    return (EXIT_FAILURE);
-}
 
 void    print_arguments(char **argv, int i, char ***env, int status)
 {
     int     index;
     char    *dollar;
+    char    **expanded;
     int     j;
     int     space_flag;
     
-    while (argv[i])
+
+    expanded = expand(argv, env[0], exit_status);
+    while (expanded[i])
     {
         j = 0;
         space_flag = 0;
-        while (argv[i][j])
-        {
-            if (argv[i][j] == '$')
-            {
-                index = compare_var_env(&argv[i][++j], env[0]);
-                if (hanlde_index(index, env, status))
-                    space_flag = 1;
-                break;
-            }
-            write (STDOUT_FILENO, &argv[i][j], 1);
-            j++;
-        }
+        ft_putstr_fd(expanded[i], STDOUT_FILENO);
         i++;
         if (argv[i] && !space_flag)
             write(STDOUT_FILENO, " ", 1);
@@ -149,41 +124,65 @@ int ft_echo(char **argv, char ***env, int status)
 }
 
 // cd
-int check_dir_x(struct stat file_stat, char *path)
+int check_dir_x(struct stat *file_stat, char *path)
 {
-    if (stat(path, &file_stat) == -1)
+    if (stat(path, file_stat) == -1)
     {
         perror("stat failed");
         return (0);
     }
-    return ((file_stat.st_mode & S_IXUSR) && (S_ISDIR(file_stat.st_mode)));
+    return ((file_stat->st_mode & S_IXUSR) && (S_ISDIR(file_stat->st_mode)));
 }
 
-char    *fetch_val(char **env, char *arg)
+void    update_env(char ***env, char *new_cwd, char *cwd)
 {
-    int index;
-    char    *value;
+    int     i;
+    char    *tmp;
+    char    *joiner;
 
-    index = compare_var_env(arg, env);
-    if (index >= 0)
+    i = 0;
+    while (env[0][i])
     {
-        value = ft_strdup(&env[index][find_equal(env[index])]);
-        ft_putstr_fd(value, STDOUT_FILENO);
-        return (value);
+        tmp = env[0][i];
+        if (!ft_strncmp("PWD=", env[0][i], ft_strlen("PWD=")))
+        {
+            free(env[0][i]);
+            joiner = ft_strjoin("PWD=", new_cwd);
+            env[0][i] = joiner;
+            joiner = NULL;
+        }
+        else if (!ft_strncmp("OLDPWD=", env[0][i], ft_strlen("OLDPWD=")))
+        {
+            free(env[0][i]);
+            joiner = ft_strjoin("OLDPWD=", cwd);
+            env[0][i] = joiner;
+            joiner = NULL;
+        }
+        i++;
     }
-    return (NULL);
 }
 
-int ft_cd(char **argv, char **env)
+int ft_cd(char **argv, char ***env)
 {
     char  *path;
+    char    **expanded;
     struct stat file_stat;
     char    cwd[4096];
     char    new_cwd[4096];
     
-    path = argv[1];
-    if (ft_strchr(path, '$'))
-        path = fetch_val(env, argv[1]);
+    if (argv[2])
+        return (EXIT_FAILURE);
+    if (argv[1])
+    {
+        path = argv[1];
+        if (ft_strchr(path, '$'))
+        {
+            expanded = expand(argv + 1, env[0], exit_status);
+            path = expanded[0];
+        }   
+    }
+    else
+        path = NULL;
     if (getcwd(cwd, sizeof(cwd)) == NULL)
     {
         perror("getcwd failed");
@@ -197,7 +196,7 @@ int ft_cd(char **argv, char **env)
             perror("getenv failed");
             return (1);
         }
-        if (check_dir_x(file_stat, path))
+        if (check_dir_x(&file_stat, path))
         {    
             if (chdir(path) == -1)
             {
@@ -219,7 +218,7 @@ int ft_cd(char **argv, char **env)
             perror("getenv failed");
             return (1);
         }
-        if (check_dir_x(file_stat, path))
+        if (check_dir_x(&file_stat, path))
         {    
             if (chdir(path) == -1)
             {
@@ -236,7 +235,7 @@ int ft_cd(char **argv, char **env)
     else
     {
 
-        if (check_dir_x(file_stat, path))
+        if (check_dir_x(&file_stat, path))
         {
             if (chdir(path) == -1)
             {
@@ -255,8 +254,7 @@ int ft_cd(char **argv, char **env)
         perror("getcwd failed");
         return (1);
     }
-    setenv("PWD", new_cwd, 1);
-    setenv("OLDPWD", cwd, 1);
+    update_env(env, new_cwd, cwd);
     return (0);
 }
 //start pwd implemetation:
@@ -612,7 +610,7 @@ int handle_builtins(t_tree *root, int in, int out, char ***env, int status)
     if (!ft_strcmp(root->command[0], "echo"))
         exit_code = ft_echo(root->command, env, status);
     else if (!ft_strcmp(root->command[0], "cd"))
-        exit_code = ft_cd(root->command, env[0]);
+        exit_code = ft_cd(root->command, env);
     else if (!ft_strcmp(root->command[0], "pwd"))
         exit_code = ft_pwd(root->command);
     else if (!ft_strcmp(root->command[0], "export"))

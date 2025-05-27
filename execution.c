@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/26 15:35:04 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/27 15:13:14 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,11 +34,19 @@ void    forker(t_tree *root, t_fd *fd, char ***env)
 {
     int pid;
     int status;
+    int saved_stdin;
+    int saved_stdout;
 
     if (!is_builtin(root->command[0]))
     {
+        saved_stdin = dup(STDIN_FILENO);
+        saved_stdout = dup(STDOUT_FILENO);
         redirecting(fd->in, fd->out);
         exit_status = handle_builtins(root, fd->in, fd->out, env, exit_status);
+        dup2(saved_stdin, STDIN_FILENO);
+        dup2(saved_stdout, STDOUT_FILENO);
+        close(saved_stdin);
+        close(saved_stdout);
         return ;
     }
     pid = fork();
@@ -49,12 +57,11 @@ void    forker(t_tree *root, t_fd *fd, char ***env)
     }
     if (!pid)
     {
-        signal(SIGINT, child_sigint_handler);  // or child_sigint_handler
-        signal(SIGQUIT, ctrl_d_handle);
         redirecting(fd->in, fd->out);
         execute_command(root,fd->in, fd->out ,*env);
     }
-    waitpid(pid, &exit_status, 0);
+    else
+        waitpid(pid, &exit_status, 0);
     exit_status = get_exit_status();
 }
 
@@ -90,8 +97,6 @@ void handle_pipe(t_pid *pid, t_fd *fd, char ***env, t_tree *root)
     pid->left_pid = fork();
     if (!pid->left_pid)
     {
-        signal(SIGINT, child_sigint_handler);  // Add this
-        signal(SIGQUIT, ctrl_d_handle);
         close(pfd[0]);
         fd->out = pfd[1];
         execution(root->left, fd, env, 0);
@@ -100,8 +105,6 @@ void handle_pipe(t_pid *pid, t_fd *fd, char ***env, t_tree *root)
     pid->right_pid = fork();
     if (!pid->right_pid)
     {
-        signal(SIGINT, child_sigint_handler);  // Add this
-        signal(SIGQUIT, ctrl_d_handle);
         close(pfd[1]);
         fd->in = pfd[0];
         execution(root->right, fd, env, 0);
@@ -139,80 +142,8 @@ int    initialize(t_tree *root, t_fd *fd, char ***env)
 {
     signal(SIGINT, sigint_handler);
 	signal(SIGQUIT, ctrl_d_handle);
+    // fprintf(stdout, "out fd = %d\n", STDOUT_FILENO);
     execution(root, fd, env, 0);
+    // fprintf(stdout, "out fd = %d\n", STDOUT_FILENO);
     return (exit_status);
 }
-
-
-// int main(int ac, char **av, char **env)
-// {
-//     int stat;
-//     t_fd *fds;
-//     char    **my_env;
-    
-//     fds = malloc(sizeof(t_fd));
-//     if (!fds)
-//     {
-//         perror("Memory allocation failed");
-//         return (EXIT_FAILURE);
-//     }
-    
-//     fds->in = STDIN_FILENO;
-//     fds->out = STDOUT_FILENO;
-//     my_env = copy_env(env);
-
-//     // First export command
-//     t_tree *export1 = malloc(sizeof(t_tree));
-//     export1->left = export1->right = NULL;
-//     export1->command = malloc(5 * sizeof(char *));
-//     export1->command[0] = "cat";
-//     // export1->command[1] = "xar1=xcasd";
-//     export1->command[1] = NULL;
-//     export1->type = COMMAND;
-
-//     t_tree *export2 = malloc(sizeof(t_tree));
-//     export2->left = export2->right = NULL;
-//     export2->command = malloc(5 * sizeof(char *));
-//     export2->command[0] = "ls";
-//     // export2->command[1] = "PAH=ssss";
-//     // export2->command[2] = "var2=dddd";
-//     // export2->command[3] = "var3=xxxx";
-//     export2->command[1] = NULL;
-//     export2->type = COMMAND;
-
-//      t_tree *export3 = malloc(sizeof(t_tree));
-//     export3->left = export3->right = NULL;
-//     export3->command = malloc(1 * sizeof(char *));
-//     export3->command[0] = "unset";
-//     export3->command[1] = "var2";
-//     export3->command[2] = NULL;
-//     export3->type = COMMAND;
-    
-//     t_tree *pipe = malloc(sizeof(t_tree));
-//     pipe->left = export2;
-//     pipe->right = export1;
-//     pipe->command = NULL;
-//     pipe->type = PIPE;
-    
-//     // stat = initialize_exec_wait(pipe, fds, &my_env); // Pass address of my_env
-//     // printf("-----------------------------------------------------------------------");
-//     // stat = initialize_exec_wait(export2, fds, &my_env); // Passaddress of my_env
-//     stat = initialize(export1, fds, &my_env); // Passaddress of my_env
-//     // stat = initialize_exec_wait(export3, fds, &my_env); // Pass address of my_env
-//     //     stat = initialize_exec_wait(export1, fds, &my_env); // Passaddress of my_env
-
-//     // stat = initialize_exec_wait(pipe, fds, &my_env); // Passaddress of my_env
-//     // stat = initialize_exec_wait(export2, fds, &my_env); // Passaddress of my_env
-//     // // stat = initialize_exec_wait(export3, fds, &my_env); // Passaddress of my_env
-        
-
-
-
-    
-//     // Free memory
-//     free_tree(&pipe);
-//     free_array(my_env);
-//     free(fds);
-    
-//     return (stat);
-// }

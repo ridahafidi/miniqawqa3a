@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   tokenize.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: yel-qori <yel-qori@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/18 14:49:40 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/05/19 19:36:38 by rhafidi          ###   ########.fr       */
+/*   Created: 2025/04/18 14:49:40 by yel-qori          #+#                #+#             */
+/*   Updated: 2025/05/26 17:36:08 by yel-qori         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,11 +159,19 @@ char	**tokenize_input(char *input)
 	int				merged;
 	int				new_size;
 	char *insert_spaces;
+	char *stripped;
 
 	i = 0;
 	k = 0;
 	merged = 0;
 	insert_spaces = add_delimiter_spaces(input);
+	if (special_characters(input))
+		return (NULL);
+	if (check_valid_quotes(input) == 0)
+	{
+		printf("unclosed quotes");
+		return (NULL);
+	}
 	token.tokens = ft_split(insert_spaces, ' ');
 	while (token.tokens[i])
 	{
@@ -226,6 +234,29 @@ char	**tokenize_input(char *input)
 		}
 		i++;
 	}
+	i = 0;
+    while (token.tokens[i])
+    {
+        char *token_str = token.tokens[i];
+        size_t len = ft_strlen(token_str);
+
+        if (len >= 2 && 
+            ((token_str[0] == '"' && token_str[len - 1] == '"') ||
+             (token_str[0] == '\'' && token_str[len - 1] == '\'')))
+        {
+            stripped = ft_substr(token_str, 1, len - 2);
+            free(token.tokens[i]);
+            token.tokens[i] = stripped;
+        }
+        i++;
+    }
+	// if (invalid_redirections(token.tokens) == 0)
+	// {
+	// 	// free(token.tokens);
+	// 	return (NULL);
+	// }
+	if (invalid_pipe(token.tokens) == 0)
+		return (NULL);
 	return (token.tokens);
 }
 

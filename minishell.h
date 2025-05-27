@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 15:23:36 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/26 15:34:43 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/27 15:10:50 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,10 @@ void	sigint_handler(int sig);
 void	ctrl_d_handle(int sig);
 void	heredoc_sigint_handler(int sig);
 void	child_sigint_handler(int sig);
-int find_equal(char *str);
+int     find_equal(char *str);
+int     find_start(char *s);
+char	**expand(char **argv, char **env, int status);
+int     compare_var_env(char *arg, char **env);
 extern int exit_status;
 
 #endif
