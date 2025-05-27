@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 15:23:36 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/27 15:10:50 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/27 21:14:14 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ typedef struct s_fd
 
 void    execute_command(t_tree *root, int in, int out, char **env);
 void    free_tree(t_tree **root);
-void    handle_redirections(t_tree *root, int *in, int *out, int flag);
+void handle_redirections(t_tree *root, int *in, int *out, int flag, char **env);
 int     is_builtin(char *cmd);
 void rdirectin_out(int in, int out);
 int handle_builtins(t_tree *root, int in, int out, char ***env, int status);
@@ -74,6 +74,7 @@ int     find_equal(char *str);
 int     find_start(char *s);
 char	**expand(char **argv, char **env, int status);
 int     compare_var_env(char *arg, char **env);
+void strip_quotes_from_tokens(char **tokens, int skip_heredoc_delimiter);
 extern int exit_status;
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/27 15:31:41 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/27 20:34:18 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,7 +177,7 @@ char	**expand(char **argv, char **env, int status)
 	char	**expanded;
 	char	*temp;
 
-	if (!argv)
+	if (!argv || !argv[0])
 		return (NULL);
 	len = 0;
 	while (argv[len])

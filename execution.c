@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/27 17:12:26 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/27 21:13:49 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,8 +133,7 @@ void    execution(t_tree *root,t_fd *fd, char ***env, int flag)
         handle_pipe(pid , fd, env, root);
     else if (root->type == APPEND || root->type == GREATER || root->type == LESS || root->type == HEREDOC)
     {
-        fprintf(stdout, "this is the type : %d\n", root->type);
-        handle_redirections(root, &fd->in, &fd->out, flag);
+        handle_redirections(root, &fd->in, &fd->out, flag, env[0]);
         execution(root->left, fd, env, 1);
         return ;
     }
