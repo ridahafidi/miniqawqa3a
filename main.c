@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:27:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/05/20 18:03:00 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/29 20:16:33 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,10 @@ int process_cmd(char *input, char ***env)
     fds->out = STDOUT_FILENO;
     tokens = tokenize_input(input);
     if (!tokens)
+    {
+        free(fds);
         return (0);
+    }
     ast = parse_tokens(tokens);
     if (ast)
     {
@@ -39,6 +42,7 @@ int process_cmd(char *input, char ***env)
     }
     else if (tokens)
         free_array(tokens);
+    free(fds);
     return (0);
 }
 

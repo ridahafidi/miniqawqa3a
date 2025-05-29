@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:24:33 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/05/26 20:53:16 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/28 19:56:01 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@
 # include <stdlib.h>
 # include <string.h>
 # include <unistd.h>
-# include "minishell.h"
 
 typedef struct s_token_type
 {

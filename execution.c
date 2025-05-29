@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/27 21:13:49 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/29 21:09:30 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,12 +58,31 @@ void    forker(t_tree *root, t_fd *fd, char ***env)
     }
     if (!pid)
     {
+        signal(SIGINT, child_sigint_handler); // Reset SIGINT for child
+        signal(SIGQUIT, SIG_DFL);             // Reset SIGQUIT for child
         redirecting(fd->in, fd->out);
         execute_command(root,fd->in, fd->out ,*env);
     }
     else
+    {
         waitpid(pid, &exit_status, 0);
-    exit_status = get_exit_status();
+        if (WIFSIGNALED(exit_status))
+        {
+            if (WTERMSIG(exit_status) == SIGQUIT)
+            {
+                ft_putstr_fd("Quit (core dumped)\n", STDERR_FILENO);
+                exit_status = 131;
+            }
+            else if (WTERMSIG(exit_status) == SIGINT)
+            {
+                ft_putstr_fd("\n", STDERR_FILENO);
+                exit_status = 130;
+            }
+        }
+        // Restore shell signal handlers
+        signal(SIGINT, sigint_handler);
+        signal(SIGQUIT, SIG_IGN);
+    }
 }
 
 void    pipein(int *pfd)
@@ -98,6 +117,8 @@ void handle_pipe(t_pid *pid, t_fd *fd, char ***env, t_tree *root)
     pid->left_pid = fork();
     if (!pid->left_pid)
     {
+        signal(SIGINT, SIG_DFL);
+        signal(SIGQUIT, SIG_DFL);
         close(pfd[0]);
         fd->out = pfd[1];
         execution(root->left, fd, env, 0);
@@ -106,6 +127,8 @@ void handle_pipe(t_pid *pid, t_fd *fd, char ***env, t_tree *root)
     pid->right_pid = fork();
     if (!pid->right_pid)
     {
+        signal(SIGINT, SIG_DFL);
+        signal(SIGQUIT, SIG_DFL);
         close(pfd[1]);
         fd->in = pfd[0];
         execution(root->right, fd, env, 0);
@@ -141,10 +164,6 @@ void    execution(t_tree *root,t_fd *fd, char ***env, int flag)
 
 int    initialize(t_tree *root, t_fd *fd, char ***env)
 {
-    signal(SIGINT, sigint_handler);
-	signal(SIGQUIT, ctrl_d_handle);
-    // fprintf(stdout, "out fd = %d\n", STDOUT_FILENO);
     execution(root, fd, env, 0);
-    // fprintf(stdout, "out fd = %d\n", STDOUT_FILENO);
     return (exit_status);
 }
