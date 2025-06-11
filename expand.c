@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/27 20:34:18 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/30 17:33:32 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,23 +136,44 @@ char	*expand_string(char *str, char **env, int status)
 	int		var_len;
 	char 	*temp;
 	int		in_single_quotes;
+	int		in_double_quotes;
 
-	if (!str || !check_for_dollar(str))
+	if (!str)
+		return (NULL);
+
+	// For strings starting with double quotes and ending with single quotes, return as is
+	if (str[0] == '"' && str[ft_strlen(str) - 1] == '\'')
 		return (ft_strdup(str));
 
 	result = ft_strdup(str);
 	if (!result)
 		return (NULL);
 
+	// If no $ sign, return as is (unless it's a quoted string)
+	if (!check_for_dollar(str))
+		return (result);
+
 	i = 0;
 	in_single_quotes = 0;
+	in_double_quotes = 0;
 	
 	while (result[i])
 	{
-		if (result[i] == '\'')
+		// Handle nested quotes
+		if (result[i] == '\'' && !in_double_quotes)
+		{
 			in_single_quotes = !in_single_quotes;
-		
-		if (result[i] == '$' && !in_single_quotes)
+			i++;
+			continue;
+		}
+		else if (result[i] == '"' && !in_single_quotes)
+		{
+			in_double_quotes = !in_double_quotes;
+			i++;
+			continue;
+		}
+		// Only expand if not in single quotes
+		else if (result[i] == '$' && !in_double_quotes)
 		{
 			var_len = find_var_end(&result[i]);
 			var_name = get_var_name(&result[i]);

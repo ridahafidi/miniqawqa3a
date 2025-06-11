@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 17:21:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/27 15:09:35 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/06/01 17:48:54 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,23 +81,26 @@ int find_start(char *s)
 
 void    print_arguments(char **argv, int i, char ***env, int status)
 {
-    int     index;
-    char    *dollar;
     char    **expanded;
     int     j;
-    int     space_flag;
     
-
     expanded = expand(argv, env[0], exit_status);
     while (expanded[i])
     {
-        j = 0;
-        space_flag = 0;
+        
         ft_putstr_fd(expanded[i], STDOUT_FILENO);
         i++;
-        if (argv[i] && !space_flag)
+        if (expanded[i])  // Only print space if there's another argument
             write(STDOUT_FILENO, " ", 1);
     }
+    // Free the expanded array
+    j = 0;
+    while (expanded[j])
+    {
+        free(expanded[j]);
+        j++;
+    }
+    free(expanded);
 }
 
 int ft_echo(char **argv, char ***env, int status)
@@ -112,8 +115,15 @@ int ft_echo(char **argv, char ***env, int status)
         write(STDOUT_FILENO, "\n", 1);
         return (0);
     }
-    else if (!ft_strcmp(argv[1], "-n"))
+    while (argv[i] && argv[i][0] == '-')
     {
+        int j = 1;
+        while (argv[i][j] == 'n')
+            j++;
+        if (argv[i][j] != '\0')  // If not all 'n', break
+            break;
+        if (j == 1)  // If just "-", break
+            break;
         n_flag = 1;
         i++;
     }

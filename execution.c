@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/29 21:09:30 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/05/30 16:23:36 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,17 @@ void    forker(t_tree *root, t_fd *fd, char ***env)
     int saved_stdin;
     int saved_stdout;
 
+    if (!root->command || !root->command[0])
+    {
+        saved_stdin = dup(STDIN_FILENO);
+        saved_stdout = dup(STDOUT_FILENO);
+        redirecting(fd->in, fd->out);
+        dup2(saved_stdin, STDIN_FILENO);
+        dup2(saved_stdout, STDOUT_FILENO);
+        close(saved_stdin);
+        close(saved_stdout);
+        return ;
+    }
     if (!is_builtin(root->command[0]))
     {
         saved_stdin = dup(STDIN_FILENO);
@@ -150,16 +161,22 @@ void    execution(t_tree *root,t_fd *fd, char ***env, int flag)
         free(pid);
         return ;
     }
-    if (root->type == COMMAND)
-        forker(root, fd , env);
-    else if (root->type == PIPE)
-        handle_pipe(pid , fd, env, root);
-    else if (root->type == APPEND || root->type == GREATER || root->type == LESS || root->type == HEREDOC)
+    if (root->type == APPEND || root->type == GREATER || root->type == LESS || root->type == HEREDOC)
     {
         handle_redirections(root, &fd->in, &fd->out, flag, env[0]);
         execution(root->left, fd, env, 1);
         return ;
     }
+    else if (root->type == COMMAND)
+        forker(root, fd , env);
+    else if (root->type == PIPE)
+        handle_pipe(pid , fd, env, root);
+    // else if (root->type == APPEND || root->type == GREATER || root->type == LESS || root->type == HEREDOC)
+    // {
+    //     handle_redirections(root, &fd->in, &fd->out, flag, env[0]);
+    //     execution(root->left, fd, env, 1);
+    //     return ;
+    // }
 }
 
 int    initialize(t_tree *root, t_fd *fd, char ***env)
