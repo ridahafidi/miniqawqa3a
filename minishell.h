@@ -13,6 +13,16 @@
 #ifndef MINISHELL_H
 #define MINISHELL_H
 
+// Error codes matching bash behavior
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
+#define EXIT_BUILTIN_ERROR 2
+#define EXIT_EXEC_ERROR 126
+#define EXIT_CMD_NOT_FOUND 127
+#define EXIT_INVALID_EXIT 128
+#define EXIT_SIGINT_CODE 130
+#define EXIT_SIGQUIT_CODE 131
+
 #include <signal.h>
 #include <unistd.h>
 #include <stdio.h>

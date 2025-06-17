@@ -87,21 +87,52 @@ void    access_exec(char **argv, char **env)
 
 void    execute_command(t_tree *root, int in, int out, char **env)
 {
-    char **argv;
-    char    *path;
-    int     status;
+    char *path;
+    (void)in;
+    (void)out;
     
-    argv = root->command;
-    if (argv[0][0] == '/' || argv[0][0] == '.')
-        access_exec(argv, env);
-    path = get_path(argv[0], env);
-    if (!path)
+    // First check if it's an absolute or relative path
+    if (root->command[0][0] == '/' || root->command[0][0] == '.')
     {
-        perror("command not found");
-        exit(127);
+        if (access(root->command[0], F_OK) == -1)
+        {
+            ft_putstr_fd("minishell: ", STDERR_FILENO);
+            ft_putstr_fd(root->command[0], STDERR_FILENO);
+            ft_putstr_fd(": No such file or directory\n", STDERR_FILENO);
+            exit(127);  // Command not found
+        }
+        if (access(root->command[0], X_OK) == -1)
+        {
+            ft_putstr_fd("minishell: ", STDERR_FILENO);
+            ft_putstr_fd(root->command[0], STDERR_FILENO);
+            ft_putstr_fd(": Permission denied\n", STDERR_FILENO);
+            exit(126);  // Permission denied
+        }
+        path = root->command[0];
     }
-    execve(path, argv, env);
-    perror("exec failed");
-    free_array(argv);
-    exit(1);
+    else
+    {
+        path = get_path(root->command[0], env);
+        if (!path)
+        {
+            ft_putstr_fd("minishell: ", STDERR_FILENO);
+            ft_putstr_fd(root->command[0], STDERR_FILENO);
+            ft_putstr_fd(": command not found\n", STDERR_FILENO);
+            exit(127);  // Command not found
+        }
+    }
+    
+    if (execve(path, root->command, env) == -1)
+    {
+        if (errno == EACCES)
+        {
+            ft_putstr_fd("minishell: ", STDERR_FILENO);
+            ft_putstr_fd(root->command[0], STDERR_FILENO);
+            ft_putstr_fd(": Permission denied\n", STDERR_FILENO);
+            exit(126);  // Permission denied
+        }
+        if (errno == ENOENT)
+            exit(127);  // No such file or directory
+        exit(126);     // Other execution errors
+    }
 }

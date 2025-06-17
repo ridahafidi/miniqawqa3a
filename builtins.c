@@ -79,30 +79,6 @@ int find_start(char *s)
     return(0); 
 }
 
-void    print_arguments(char **argv, int i, char ***env, int status)
-{
-    char    **expanded;
-    int     j;
-    
-    expanded = expand(argv, env[0], exit_status);
-    while (expanded[i])
-    {
-        
-        ft_putstr_fd(expanded[i], STDOUT_FILENO);
-        i++;
-        if (expanded[i])  // Only print space if there's another argument
-            write(STDOUT_FILENO, " ", 1);
-    }
-    // Free the expanded array
-    j = 0;
-    while (expanded[j])
-    {
-        free(expanded[j]);
-        j++;
-    }
-    free(expanded);
-}
-
 int ft_echo(char **argv, char ***env, int status)
 {
     int i;
@@ -127,7 +103,7 @@ int ft_echo(char **argv, char ***env, int status)
         n_flag = 1;
         i++;
     }
-    print_arguments(argv, i, env, status);
+    ft_putstr_fd(argv[i], STDOUT_FILENO);
     if (n_flag == 0)
         write(STDOUT_FILENO, "\n", 1);
     return (0);
@@ -602,7 +578,7 @@ int    ft_exit(char **argv)
     }
     if (argv[1] && argv[2])
     {
-        ft_putstr_fd("exit: too many arguments", STDOUT_FILENO);
+        ft_putstr_fd("exit: too many arguments\n", STDOUT_FILENO);
         return (EXIT_FAILURE);
     }
     if (argv[1])

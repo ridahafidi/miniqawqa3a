@@ -10,49 +10,54 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "parsing.h"
+#include "minishell.h"
 
 int	check_valid_quotes(char *input)
 {
-	int		i;
-	char	quote;
+    int		i;
+    char	quote;
 
-	i = 0;
-	quote = 0;
-	while (input[i])
-	{
-		if (input[i] == '"' || input[i] == '\'')
-		{
-			if (quote == 0)
-				quote = input[i];
-			else if (input[i] == quote)
-				quote = 0;
-		}
-		i++;
-	}
-	if (quote != 0)
-		return (0);
-	return (1);
+    i = 0;
+    quote = 0;
+    while (input[i])
+    {
+        if (input[i] == '"' || input[i] == '\'')
+        {
+            if (quote == 0)
+                quote = input[i];
+            else if (input[i] == quote)
+                quote = 0;
+        }
+        i++;
+    }
+    if (quote != 0)
+    {
+        ft_putstr_fd("minishell: syntax error: unexpected EOF while looking for matching quote\n", 2);
+        exit_status = EXIT_FAILURE;
+        return (0);
+    }
+    return (1);
 }
 
 int invalid_pipe(char **tokens)
 {
-	int i;
+    int i;
 
-	i = 0;
-	while (tokens[i])
-	{
-		if (is_pipe(tokens[i]))
-		{
-			if (!tokens[i + 1])
-			{
-				printf("minishell: syntax error near unexpected token `|`\n");
-				return (0);
-			}
-		}
-		i++;
-	}
-	return (1);
+    i = 0;
+    while (tokens[i])
+    {
+        if (is_pipe(tokens[i]))
+        {
+            if (!tokens[i + 1])
+            {
+                ft_putstr_fd("minishell: syntax error near unexpected token `|'\n", 2);
+                exit_status = EXIT_FAILURE;
+                return (0);
+            }
+        }
+        i++;
+    }
+    return (1);
 }
 
 int special_characters(char *input)
@@ -64,7 +69,8 @@ int special_characters(char *input)
     {
         if (input[i] == ';')
         {
-            printf("error special character `;`\n");
+            ft_putstr_fd("minishell: syntax error near unexpected token `;'\n", 2);
+            exit_status = EXIT_FAILURE;
             return (1);
         }
         i++;

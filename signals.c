@@ -12,6 +12,8 @@
 
 #include "minishell.h"
 
+extern int exit_status;
+
 void	ctrl_d_handle(int sig)
 {
 	(void)sig;
@@ -22,7 +24,7 @@ void	ctrl_d_handle(int sig)
 void	sigint_handler(int sig)
 {
 	(void)sig;
-	exit_status = 130;
+	exit_status = EXIT_SIGINT_CODE;  // 130 for Ctrl-C
 	write(STDOUT_FILENO, "\n", 1);
 	rl_on_new_line();
 	rl_replace_line("", 0);
@@ -32,7 +34,7 @@ void	sigint_handler(int sig)
 void	heredoc_sigint_handler(int sig)
 {
 	(void)sig;
-	exit_status = 130;
+	exit_status = EXIT_SIGINT_CODE;  // 130 for Ctrl-C
 	write(STDOUT_FILENO, "\n", 1);
 	rl_on_new_line();
 	rl_replace_line("", 0);
@@ -42,5 +44,5 @@ void	child_sigint_handler(int sig)
 {
 	(void)sig;
 	write(STDOUT_FILENO, "\n", 1);
-	exit(130);
+	exit(EXIT_SIGINT_CODE);  // 130 for Ctrl-C
 }

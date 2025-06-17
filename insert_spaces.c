@@ -19,39 +19,62 @@ int	is_operator(char c)
 
 char	*add_delimiter_spaces(char *input)
 {
-	int i = 0;
-	int j = 0;
-	int len = ft_strlen(input);
-	char *buffer;
-	int quote = 0;
-
-	buffer = malloc(sizeof(char *) * len + 3);
-	if (!buffer)
-		return (NULL);
-	while (input[i])
-	{
-		while (input[i] != '\0')
-		{
-			if (input[i] == '"' || input[i] == '\'')
-				{
-					if (quote == 0)
-						quote = input[i];
-					else if (quote == input[i])
-						quote = 0;
-				}
-			if (is_operator(input[i]) && quote == 0)
-			{
-				if (i > 0 && input[i - 1] != ' ')
-					buffer[j++] = ' ';
-				buffer[j++] = input[i];
-				if (input[i + 1] != '\0' && input[i + 1] != ' ')
-					buffer[j++] = ' ';
-			}
-			else
-				buffer[j++] = input[i];
-			i++;
-		}
-		buffer[j] = '\0';
-	}
-    return (buffer);
+    int len = strlen(input);
+    int new_len = len;
+    int i;
+    
+    // Count needed spaces
+    for (i = 0; i < len; i++)
+    {
+        if (is_operator_char(input[i]))
+        {
+            // Check for >> or << cases
+            if (i + 1 < len && input[i] == input[i + 1])
+            {
+                new_len += 2; // Space before and after '>>' or '<<'
+                i++;         // Skip next character since we handled it
+            }
+            else
+            {
+                new_len += 2; // Space before and after single operator
+            }
+        }
+    }
+    
+    char *result = malloc(new_len + 1);
+    if (!result)
+        return NULL;
+    
+    int j = 0;
+    for (i = 0; i < len; i++)
+    {
+        if (is_operator_char(input[i]))
+        {
+            // Handle >> and << cases
+            if (i + 1 < len && input[i] == input[i + 1])
+            {
+                if (j > 0 && result[j-1] != ' ')
+                    result[j++] = ' ';
+                result[j++] = input[i];
+                result[j++] = input[i+1];
+                if (i + 2 < len && input[i+2] != ' ')
+                    result[j++] = ' ';
+                i++; // Skip next char since we handled it
+                continue;
+            }
+            // Handle single operator
+            if (j > 0 && result[j-1] != ' ')
+                result[j++] = ' ';
+            result[j++] = input[i];
+            if (i + 1 < len && input[i+1] != ' ')
+                result[j++] = ' ';
+        }
+        else
+        {
+            result[j++] = input[i];
+        }
+    }
+    result[j] = '\0';
+    
+    return result;
 }

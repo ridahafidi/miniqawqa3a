@@ -27,7 +27,7 @@ int process_cmd(char *input, char ***env)
     }
     fds->in = STDIN_FILENO;
     fds->out = STDOUT_FILENO;
-    tokens = tokenize_input(input);
+    tokens = tokenize_input(input, *env, exit_status);
     if (!tokens)
     {
         free(fds);

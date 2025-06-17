@@ -32,84 +32,74 @@ void free_token_array(char **tokens)
     free(tokens);
 }
 
-char **tokenize_input(char *input)
+char **tokenize_input(char *input, char **env, int exit_status)
 {
     char **tokens;
-    int i = 0, j = 0, k = 0;
-    int len = ft_strlen(input);
+    char *spaced_input;
+    char **expanded_tokens;
+    int i;
+    
+    if (!input || !*input)
+        return NULL;
 
-    // Allocate memory for tokens (worst-case scenario: each char is a token)
-    tokens = malloc(sizeof(char *) * (len + 1));
-    if (!tokens)
-        return (NULL);
-
-    while (input[i])
+    // First check for syntax errors
+    if (!check_valid_quotes(input))
     {
-        // Skip whitespace
-        if (input[i] == ' ')
+        printf("minishell: unclosed quotes\n");
+        return NULL;
+    }
+    
+    if (special_characters(input))
+        return NULL;
+
+    // Add spaces around operators
+    spaced_input = add_delimiter_spaces(input);
+    if (!spaced_input)
+        return NULL;
+
+    // Initial tokenization
+    tokens = initial_tokenization(spaced_input);
+    free(spaced_input);
+    
+    if (!tokens)
+        return NULL;
+
+    // Expand variables in tokens (except in single quotes and heredoc delimiters)
+    i = 0;
+    while (tokens[i])
+    {
+        // Skip expansion for heredoc delimiters
+        if (i > 0 && ft_strcmp(tokens[i - 1], "<<") == 0)
         {
             i++;
             continue;
         }
 
-        // Handle multi-character operators like "<<", ">>"
-        if (is_operator_char(input[i]))
+        // Skip expansion inside single quotes
+        if (tokens[i][0] == '\'')
         {
-            if ((input[i] == '<' && input[i + 1] == '<') || 
-                (input[i] == '>' && input[i + 1] == '>'))
-            {
-                tokens[j] = ft_substr(input, i, 2);
-                if (!tokens[j++]) // Check for memory allocation failure
-                {
-                    free_token_array(tokens);
-                    return (NULL);
-                }
-                i += 2;
-            }
-            else
-            {
-                tokens[j] = ft_substr(input, i, 1);
-                if (!tokens[j++]) // Check for memory allocation failure
-                {
-                    free_token_array(tokens);
-                    return (NULL);
-                }
-                i++;
-            }
+            i++;
             continue;
         }
 
-        // Handle regular tokens (e.g., "cat", "x")
-        k = i;
-        while (input[k] && !is_operator_char(input[k]) && input[k] != ' ')
-            k++;
-        tokens[j] = ft_substr(input, i, k - i);
-        if (!tokens[j++]) // Check for memory allocation failure
+        char *expanded = expand_string(tokens[i], env, exit_status);
+        if (expanded)
         {
-            free_token_array(tokens);
-            return (NULL);
+            free(tokens[i]);
+            tokens[i] = expanded;
         }
-        i = k;
+        i++;
     }
 
-    tokens[j] = NULL; // Null-terminate the token array
+    // Strip quotes after expansion
+    strip_quotes_from_tokens(tokens, 1);  // 1 to skip heredoc delimiters
 
-    // Handle invalid syntax (e.g., unclosed quotes, invalid pipes)
-    if (check_valid_quotes(input) == 0)
+    // Check for pipe errors
+    if (!invalid_pipe(tokens))
     {
-        printf("minishell: unclosed quotes\n");
         free_token_array(tokens);
-        return (NULL);
+        return NULL;
     }
-    if (invalid_pipe(tokens) == 0)
-    {
-        printf("minishell: syntax error near unexpected token `|`\n");
-        free_token_array(tokens);
-        return (NULL);
-    }
-
-    // Strip quotes from tokens, but preserve quotes for heredoc delimiters
-    strip_quotes_from_tokens(tokens, 1);
 
     return tokens;
 }
@@ -130,13 +120,17 @@ void strip_quotes_from_tokens(char **tokens, int skip_heredoc_delimiter)
             continue;
         }
 
-        if (token_len >= 2 && 
-            ((token_str[0] == '"' && token_str[token_len - 1] == '"') ||
-             (token_str[0] == '\'' && token_str[token_len - 1] == '\'')))
+        // Remove surrounding quotes (both single and double)
+        if (token_len >= 2)
         {
-            char *stripped = ft_substr(token_str, 1, token_len - 2);
-            free(tokens[i]);
-            tokens[i] = stripped;
+            if ((token_str[0] == '\'' && token_str[token_len - 1] == '\'') ||
+                (token_str[0] == '\"' && token_str[token_len - 1] == '\"'))
+            {
+                // Create new string without quotes
+                char *unquoted = ft_substr(token_str, 1, token_len - 2);
+                free(tokens[i]);
+                tokens[i] = unquoted;
+            }
         }
         i++;
     }
@@ -164,4 +158,76 @@ char	*merge_tokens(char **tokens, int start, int end)
 		i++;
 	}
 	return (merged);
+}
+
+char **initial_tokenization(char *input)
+{
+    char **tokens;
+    
+    if (!input)
+        return (NULL);
+    
+    // Split input by whitespace using libft's ft_split
+    tokens = ft_split(input, ' ');
+    if (!tokens)
+        return (NULL);
+        
+    // Check for redirection syntax errors
+    if (!invalid_redirections(tokens))
+    {
+        free_token_array(tokens);
+        return (NULL);
+    }
+    
+    return tokens;
+}
+
+int invalid_redirections(char **tokens)
+{
+    int i;
+
+    if (!tokens)
+        return (0);
+
+    i = 0;
+    while (tokens[i])
+    {
+        // Check for redirection operators
+        if (tokens[i][0] == '>' || tokens[i][0] == '<')
+        {
+            // Check if it's >> or << (valid double operators)
+            if (tokens[i][1] == tokens[i][0] && tokens[i][2] == '\0')
+            {
+                if (!tokens[i + 1])
+                {
+                    ft_putstr_fd("minishell: syntax error near unexpected token `newline'\n", 2);
+                    return (0);
+                }
+            }
+            // Handle single > or < and invalid operators (>>> etc)
+            else if (tokens[i][1] != '\0' && tokens[i][1] != tokens[i][0])
+            {
+                ft_putstr_fd("minishell: syntax error near unexpected token `", 2);
+                ft_putstr_fd(&tokens[i][1], 2);
+                ft_putstr_fd("'\n", 2);
+                return (0);
+            }
+            // Check for missing file name
+            if (!tokens[i + 1])
+            {
+                ft_putstr_fd("minishell: syntax error near unexpected token `newline'\n", 2);
+                return (0);
+            }
+            // Check for consecutive operators
+            if (is_operator_char(tokens[i + 1][0]))
+            {
+                ft_putstr_fd("minishell: syntax error near unexpected token `", 2);
+                ft_putstr_fd(tokens[i + 1], 2);
+                ft_putstr_fd("'\n", 2);
+                return (0);
+            }
+        }
+        i++;
+    }
+    return (1);
 }

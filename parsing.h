@@ -21,6 +21,8 @@
 # include <string.h>
 # include <unistd.h>
 
+extern int exit_status;
+
 typedef struct s_token_type
 {
 	char			**tokens;
@@ -53,7 +55,8 @@ typedef struct s_tree
 }					t_tree;
 
 int					is_operator_char(char c);
-char				**tokenize_input(char *input);
+char *expand_string(const char *str, char **env, int status);
+char				**tokenize_input(char *input, char **env, int status);
 char				*merge_tokens(char **tokens, int start, int end);
 t_tree				*create_command(void);
 void				print_tree(t_tree *root);
