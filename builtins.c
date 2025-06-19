@@ -103,7 +103,13 @@ int ft_echo(char **argv, char ***env, int status)
         n_flag = 1;
         i++;
     }
-    ft_putstr_fd(argv[i], STDOUT_FILENO);
+    while (argv[i])
+    {
+        ft_putstr_fd(argv[i], STDOUT_FILENO);
+        i++;
+        if(argv[i])
+           write(STDOUT_FILENO, " ", 1); 
+    }
     if (n_flag == 0)
         write(STDOUT_FILENO, "\n", 1);
     return (0);

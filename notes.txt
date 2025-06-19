@@ -1,4 +1,0 @@
-fix builtins too many parsing errrors  and mem leaks
-
-fix < file or > file or >>file not working
-
