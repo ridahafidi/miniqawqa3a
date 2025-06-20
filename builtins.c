@@ -255,20 +255,34 @@ int ft_pwd(char **argv)
 {
     char cwd[4096];
     
-    if (!argv[1])
+    if (!getcwd(cwd, sizeof(cwd)))
     {
-        if (!getcwd(cwd, sizeof(cwd)))
-        {
-            perror("getcwd failed ");
-            return (1);
-        }
-        ft_putstr_fd(cwd, STDOUT_FILENO);
-        ft_putstr_fd("\n", STDOUT_FILENO);
-        return (0);
+        perror("getcwd failed ");
+        return (1);
     }
-    return (EXIT_FAILURE);
+    ft_putstr_fd(cwd, STDOUT_FILENO);
+    ft_putstr_fd("\n", STDOUT_FILENO);
+    return (0);
 }
 //export 
+
+int is_valid_identifier(char *str)
+{
+    int i;
+
+    if (!str || !*str)
+        return (0);
+    if (!ft_isalpha(str[0]) && str[0] != '_')
+        return (0);
+    i = 1;
+    while (str[i] && str[i] != '=')
+    {
+        if (!ft_isalnum(str[i]) && str[i] != '_' && str[i] != '+')
+            return (0);
+        i++;
+    }
+    return (1);
+}
 
 char    **copy_env(char **env)
 {
@@ -469,17 +483,21 @@ int    add_var(char **argv, char ***env)
     while (argv[i])
     {
         new_var = argv[i];
-        if (new_var[0] >= '0' && new_var[0] <= '9')
+        if (!is_valid_identifier(new_var))
         {
-            perror("not a valid identifier");
-            return (EXIT_FAILURE);
+            ft_putstr_fd("minishell : export: not a valid identifier\n", 2);
+            // return (EXIT_FAILURE);
+            i++;
         }
-        if (indetical_variable(env, argv[i]))
+        else
         {
-            if (apply_add(new_var, env))
-                return(EXIT_FAILURE);    
+            if (indetical_variable(env, argv[i]))
+            {
+                if (apply_add(new_var, env))
+                    return(EXIT_FAILURE);    
+            }
+            i++;
         }
-        i++;
     }
     return (EXIT_SUCCESS);
 }
