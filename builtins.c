@@ -12,6 +12,13 @@
 
 #include "minishell.h"
 
+void ft_swap_ptr(char ***arr, int i, int j)
+{
+    char *tmp = (*arr)[i];
+    (*arr)[i] = (*arr)[j];
+    (*arr)[j] = tmp;
+}
+
 int ft_strcmp(char *s1, char *s2)
 {
     int i;
@@ -472,98 +479,110 @@ int indetical_variable(char ***env, char *var)
     return (1);
 }
 
-int    add_var(char **argv, char ***env)
-{
-    int i;
-    int j;
-    char    *new_var;
-
-    i = 1;
-    j = 0;
-    while (argv[i])
-    {
-        new_var = argv[i];
-        if (!is_valid_identifier(new_var))
-        {
-            ft_putstr_fd("minishell : export: not a valid identifier\n", 2);
-            // return (EXIT_FAILURE);
-            i++;
-        }
-        else
-        {
-            if (indetical_variable(env, argv[i]))
-            {
-                if (apply_add(new_var, env))
-                    return(EXIT_FAILURE);    
-            }
-            i++;
-        }
-    }
-    return (EXIT_SUCCESS);
-}
-int ft_export(char **argv, char ***env)
-{
-    char **export;
-    int i;
-
-    i = 0;
-    if (!argv[1])
-    {
-        export = copy_env(*env);
-        sort_export(export);
-        print_format(export);
-        while(export[i])
-        {
-            ft_putstr_fd(export[i], STDOUT_FILENO);
-            ft_putstr_fd("\n", STDOUT_FILENO);
-            i++;
-        }
-        free(export);
-        return(EXIT_SUCCESS);
-    }
-    else
-        return (add_var(argv, env));
-    return (EXIT_FAILURE);
-}   
-// u have to fix other export things
-
-void    ft_swap_ptr(char ***env, int j, int len)
-{
-    char *tmp;
-
-    tmp = env[0][j];
-    env[0][j] = env[0][len];
-    env[0][len] = tmp;
-}
-
-int ft_unset(char **argv, char ***env)
-{
-    int i;
-    int j;
-    int len;
-
-    i = 1;
-    while(env[0][len])
+// Helper: check if var is in exported
+int is_in_exported(char *var, char **exported) {
+    int i = 0;
+    int len = 0;
+    while (var[len] && var[len] != '=')
         len++;
-    while (argv[i])
-    {
-        j = 0;
-        while (env[0][j])
-        {
-            if (!ft_strncmp(argv[i], env[0][j], ft_strlen(argv[i])))
-            {
-                ft_swap_ptr(env, j, len-1);
-                free(env[0][len-1]);
-                env[0][len-1] = NULL;
-                len--;
-                break;
-            }
-            j++;
+    while (exported && exported[i]) {
+        if (!ft_strncmp(exported[i], var, len) &&
+            (exported[i][len] == '\0' || exported[i][len] == '=')) {
+            return i;
         }
         i++;
     }
-    return(EXIT_SUCCESS);
+    return -1;
 }
+
+// Helper: add or update var in exported
+void add_or_update_exported(char *var, char ***exported) {
+    int idx = is_in_exported(var, *exported);
+    int len = 0, i = 0;
+    while (*exported && (*exported)[len])
+        len++;
+    if (idx >= 0) {
+        free((*exported)[idx]);
+        (*exported)[idx] = ft_strdup(var);
+    } else {
+        char **new_exported = malloc(sizeof(char*) * (len + 2));
+        for (i = 0; i < len; i++)
+            new_exported[i] = (*exported)[i];
+        new_exported[len] = ft_strdup(var);
+        new_exported[len+1] = NULL;
+        if (*exported)
+            free(*exported);
+        *exported = new_exported;
+    }
+}
+
+// Helper: add or update var in env (only if contains '=')
+void add_or_update_env(char *var, char ***env) {
+    if (!ft_strchr(var, '='))
+        return;
+    int i = 0, len = 0;
+    while (*env && (*env)[len])
+        len++;
+    int eqpos = 0;
+    while (var[eqpos] && var[eqpos] != '=')
+        eqpos++;
+    for (i = 0; i < len; i++) {
+        if (!ft_strncmp((*env)[i], var, eqpos) && (*env)[i][eqpos] == '=') {
+            free((*env)[i]);
+            (*env)[i] = ft_strdup(var);
+            return;
+        }
+    }
+    char **new_env = malloc(sizeof(char*) * (len + 2));
+    for (i = 0; i < len; i++)
+        new_env[i] = (*env)[i];
+    new_env[len] = ft_strdup(var);
+    new_env[len+1] = NULL;
+    if (*env)
+        free(*env);
+    *env = new_env;
+}
+
+// Update add_var to handle exported/env split
+int add_var(char **argv, char ***env, char ***exported) {
+    int i = 1;
+    while (argv[i]) {
+        if (!is_valid_identifier(argv[i])) {
+            ft_putstr_fd("minishell: export: not a valid identifier\n", 2);
+            i++;
+            continue;
+        }
+        if (ft_strchr(argv[i], '=')) {
+            add_or_update_exported(argv[i], exported);
+            add_or_update_env(argv[i], env);
+        } else {
+            add_or_update_exported(argv[i], exported);
+        }
+        i++;
+    }
+    return (EXIT_SUCCESS);
+}
+
+// Update ft_export to print exported list or add variables
+int ft_export(char **argv, char ***env, char ***exported) {
+    int i = 0;
+    if (!argv[1]) {
+        char **copy = copy_env(*exported);
+        sort_export(copy);
+        print_format(copy);
+        while (copy[i]) {
+            ft_putstr_fd(copy[i], STDOUT_FILENO);
+            ft_putstr_fd("\n", STDOUT_FILENO);
+            i++;
+        }
+        free(copy);
+        return (EXIT_SUCCESS);
+    } else {
+        return add_var(argv, env, exported);
+    }
+    return (EXIT_FAILURE);
+}
+
 // env
 
 int ft_env(char **argv, char **env)
@@ -575,8 +594,46 @@ int ft_env(char **argv, char **env)
         return (EXIT_FAILURE);
     while (env[i])
     {
-        ft_putstr_fd(env[i], STDOUT_FILENO);
-        write (STDOUT_FILENO, "\n", 1);
+        if (ft_strchr(env[i], '='))
+            ft_putstr_fd(env[i], STDOUT_FILENO);
+        write(STDOUT_FILENO, "\n", 1);
+        i++;
+    }
+    return (EXIT_SUCCESS);
+}
+
+// Update ft_unset to remove from both env and exported
+int ft_unset(char **argv, char ***env, char ***exported) {
+    int i = 1, j, len;
+    while (argv[i]) {
+        // Remove from env
+        len = 0;
+        while ((*env)[len])
+            len++;
+        for (j = 0; j < len; j++) {
+            int n = ft_strlen(argv[i]);
+            if (!ft_strncmp(argv[i], (*env)[j], n) && ((*env)[j][n] == '=' || (*env)[j][n] == '\0')) {
+                ft_swap_ptr(env, j, len-1);
+                free((*env)[len-1]);
+                (*env)[len-1] = NULL;
+                len--;
+                break;
+            }
+        }
+        // Remove from exported
+        len = 0;
+        while ((*exported)[len])
+            len++;
+        for (j = 0; j < len; j++) {
+            int n = ft_strlen(argv[i]);
+            if (!ft_strncmp(argv[i], (*exported)[j], n) && ((*exported)[j][n] == '=' || (*exported)[j][n] == '\0')) {
+                ft_swap_ptr(exported, j, len-1);
+                free((*exported)[len-1]);
+                (*exported)[len-1] = NULL;
+                len--;
+                break;
+            }
+        }
         i++;
     }
     return (EXIT_SUCCESS);
@@ -612,7 +669,7 @@ int    ft_exit(char **argv)
     exit (exit_code & 0xFF);
 }
 
-int handle_builtins(t_tree *root, int in, int out, char ***env, int status)
+int handle_builtins(t_tree *root, int in, int out, char ***env, char ***exported, int status)
 {
     int exit_code;
 
@@ -624,9 +681,9 @@ int handle_builtins(t_tree *root, int in, int out, char ***env, int status)
     else if (!ft_strcmp(root->command[0], "pwd"))
         exit_code = ft_pwd(root->command);
     else if (!ft_strcmp(root->command[0], "export"))
-        exit_code = ft_export(root->command,env);
+        exit_code = ft_export(root->command,env, exported);
     else if (!ft_strcmp(root->command[0], "unset"))
-        exit_code = ft_unset(root->command, env);
+        exit_code = ft_unset(root->command, env, exported);
     else if (!ft_strcmp(root->command[0], "env"))
         exit_code = ft_env(root->command, env[0]);
     else if (!ft_strcmp(root->command[0], "exit"))

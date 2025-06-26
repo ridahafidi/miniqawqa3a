@@ -31,7 +31,7 @@ void redirecting(int in, int out)
         close(out);
 }
 
-void    forker(t_tree *root, t_fd *fd, char ***env)
+void    forker(t_tree *root, t_fd *fd, char ***env, char ***exported)
 {
     int pid;
     int status;
@@ -54,7 +54,7 @@ void    forker(t_tree *root, t_fd *fd, char ***env)
         saved_stdin = dup(STDIN_FILENO);
         saved_stdout = dup(STDOUT_FILENO);
         redirecting(fd->in, fd->out);
-        exit_status = handle_builtins(root, fd->in, fd->out, env, exit_status);
+        exit_status = handle_builtins(root, fd->in, fd->out, env, exported, exit_status);
         dup2(saved_stdin, STDIN_FILENO);
         dup2(saved_stdout, STDOUT_FILENO);
         close(saved_stdin);
@@ -72,7 +72,7 @@ void    forker(t_tree *root, t_fd *fd, char ***env)
         signal(SIGINT, child_sigint_handler); // Reset SIGINT for child
         signal(SIGQUIT, SIG_DFL);             // Reset SIGQUIT for child
         redirecting(fd->in, fd->out);
-        execute_command(root,fd->in, fd->out ,*env);
+        execute_command(root, fd->in, fd->out, *env);
     }
     else
     {
@@ -120,7 +120,7 @@ void free_exit (t_pid *pid, t_fd *fd)
     exit(exit_status);
 }
 
-void handle_pipe(t_pid *pid, t_fd *fd, char ***env, t_tree *root)
+void handle_pipe(t_pid *pid, t_fd *fd, char ***env, char ***exported, t_tree *root)
 {
     int pfd[2];
     
@@ -132,7 +132,7 @@ void handle_pipe(t_pid *pid, t_fd *fd, char ***env, t_tree *root)
         signal(SIGQUIT, SIG_DFL);
         close(pfd[0]);
         fd->out = pfd[1];
-        execution(root->left, fd, env, 0);
+        execution(root->left, fd, env, exported, 0);
         free_exit(pid, fd);
     }
     pid->right_pid = fork();
@@ -142,13 +142,13 @@ void handle_pipe(t_pid *pid, t_fd *fd, char ***env, t_tree *root)
         signal(SIGQUIT, SIG_DFL);
         close(pfd[1]);
         fd->in = pfd[0];
-        execution(root->right, fd, env, 0);
+        execution(root->right, fd, env, exported, 0);
         free_exit(pid, fd);
     }
     close_wait(pfd, pid, fd);
 }
 
-void    execution(t_tree *root,t_fd *fd, char ***env, int flag)
+void    execution(t_tree *root,t_fd *fd, char ***env, char ***exported, int flag)
 {
     int pfd[2];
     t_pid *pid;
@@ -164,23 +164,17 @@ void    execution(t_tree *root,t_fd *fd, char ***env, int flag)
     if (root->type == APPEND || root->type == GREATER || root->type == LESS || root->type == HEREDOC)
     {
         handle_redirections(root, &fd->in, &fd->out, flag, env[0]);
-        execution(root->left, fd, env, 1);
+        execution(root->left, fd, env, exported, 1);
         return ;
     }
     else if (root->type == COMMAND)
-        forker(root, fd , env);
+        forker(root, fd, env, exported);
     else if (root->type == PIPE)
-        handle_pipe(pid , fd, env, root);
-    // else if (root->type == APPEND || root->type == GREATER || root->type == LESS || root->type == HEREDOC)
-    // {
-    //     handle_redirections(root, &fd->in, &fd->out, flag, env[0]);
-    //     execution(root->left, fd, env, 1);
-    //     return ;
-    // }
+        handle_pipe(pid , fd, env, exported, root);
 }
 
-int    initialize(t_tree *root, t_fd *fd, char ***env)
+int    initialize(t_tree *root, t_fd *fd, char ***env, char ***exported)
 {
-    execution(root, fd, env, 0);
+    execution(root, fd, env, exported, 0);
     return (exit_status);
 }

@@ -13,7 +13,7 @@
 #include "minishell.h"
 int exit_status = 0;
 
-int process_cmd(char *input, char ***env)
+int process_cmd(char *input, char ***env, char ***exported)
 {
     t_fd *fds;
     char **tokens;
@@ -37,7 +37,7 @@ int process_cmd(char *input, char ***env)
     if (ast)
     {
         free_array(tokens);
-        exit_status = initialize(ast, fds, env);
+        exit_status = initialize(ast, fds, env, exported);
         free_tree(&ast);
     }
     else if (tokens)
@@ -46,7 +46,7 @@ int process_cmd(char *input, char ***env)
     return (0);
 }
 
-void    shell_loop(char ***env)
+void    shell_loop(char ***env, char ***exported)
 {
     char    *input;
     char    exit;
@@ -64,7 +64,7 @@ void    shell_loop(char ***env)
 		if (input[0] != '\0')
 		{
 			add_history(input);
-			ret = process_cmd(input, env);
+			ret = process_cmd(input, env, exported);
 			if (ret == 1)
 				printf("\n");
 			exit = ret;
@@ -84,8 +84,9 @@ int main(int ac, char **av, char **env)
     (void)ac;
     signal(SIGINT, sigint_handler);
 	signal(SIGQUIT, SIG_IGN);
-    char    **my_env;
-    my_env = copy_env(env);
-    shell_loop(&my_env);
+    char **my_env = copy_env(env);
+    char **exported = copy_env(env);
+    shell_loop(&my_env, &exported);
     free_array(my_env);
+    free_array(exported);
 }
