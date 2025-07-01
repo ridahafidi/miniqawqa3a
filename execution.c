@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/30 16:23:36 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/01 17:03:07 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ void    forker(t_tree *root, t_fd *fd, char ***env, char ***exported)
     int status;
     int saved_stdin;
     int saved_stdout;
-
+    
     if (!root->command || !root->command[0])
     {
         saved_stdin = dup(STDIN_FILENO);
@@ -72,6 +72,8 @@ void    forker(t_tree *root, t_fd *fd, char ***env, char ***exported)
         signal(SIGINT, child_sigint_handler); // Reset SIGINT for child
         signal(SIGQUIT, SIG_DFL);             // Reset SIGQUIT for child
         redirecting(fd->in, fd->out);
+        if (fd->in == -1)
+            exit(EXIT_FAILURE);
         execute_command(root, fd->in, fd->out, *env);
     }
     else
@@ -90,6 +92,8 @@ void    forker(t_tree *root, t_fd *fd, char ***env, char ***exported)
                 exit_status = 130;
             }
         }
+        else if (WIFEXITED(exit_status))
+            exit_status = WEXITSTATUS(exit_status);
         // Restore shell signal handlers
         signal(SIGINT, sigint_handler);
         signal(SIGQUIT, SIG_IGN);
@@ -109,10 +113,12 @@ void    close_wait(int *pfd, t_pid *pid, t_fd *fd)
 {
     close (pfd[0]);
     close (pfd[1]);
-    waitpid(pid->left_pid, &exit_status, 0);
+    waitpid(pid->left_pid, NULL, 0);
     waitpid(pid->right_pid, &exit_status, 0);
+    exit_status = get_exit_status();
     free(pid);
 }
+
 void free_exit (t_pid *pid, t_fd *fd)
 {
     free(pid);

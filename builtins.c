@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 17:21:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/06/01 17:48:54 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/01 18:08:30 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -276,15 +276,20 @@ int ft_pwd(char **argv)
 int is_valid_identifier(char *str)
 {
     int i;
+    int flag_eq;
 
+    i = 0;
+    flag_eq = 0;
     if (!str || !*str)
         return (0);
-    if (!ft_isalpha(str[0]) && str[0] != '_')
+    if (!ft_isalpha(str[i]) && str[i] != '_')
         return (0);
-    i = 1;
-    while (str[i] && str[i] != '=')
+    i++;
+    while (str[i])
     {
-        if (!ft_isalnum(str[i]) && str[i] != '_' && str[i] != '+')
+        if (str[i] == '=')
+            flag_eq = 1;
+        if (flag_eq == 0 && str[i] == '-')
             return (0);
         i++;
     }
@@ -544,23 +549,30 @@ void add_or_update_env(char *var, char ***env) {
 }
 
 // Update add_var to handle exported/env split
-int add_var(char **argv, char ***env, char ***exported) {
+void add_var(char **argv, char ***env, char ***exported) {
     int i = 1;
-    while (argv[i]) {
+    while (argv[i])
+    {
         if (!is_valid_identifier(argv[i])) {
             ft_putstr_fd("minishell: export: not a valid identifier\n", 2);
-            i++;
-            continue;
+            exit_status = 1;
         }
-        if (ft_strchr(argv[i], '=')) {
-            add_or_update_exported(argv[i], exported);
-            add_or_update_env(argv[i], env);
-        } else {
-            add_or_update_exported(argv[i], exported);
+        else
+        {
+            if (ft_strchr(argv[i], '='))
+            {
+                add_or_update_exported(argv[i], exported);
+                add_or_update_env(argv[i], env);
+            }
+            else
+            {
+                add_or_update_exported(argv[i], exported);
+            }
+            exit_status = 0;
         }
         i++;
     }
-    return (EXIT_SUCCESS);
+    // return (EXIT_SUCCESS);
 }
 
 // Update ft_export to print exported list or add variables
@@ -578,7 +590,8 @@ int ft_export(char **argv, char ***env, char ***exported) {
         free(copy);
         return (EXIT_SUCCESS);
     } else {
-        return add_var(argv, env, exported);
+        add_var(argv, env, exported);
+        return (exit_status);
     }
     return (EXIT_FAILURE);
 }
@@ -650,16 +663,18 @@ int    ft_exit(char **argv)
     {
         if ((argv[1][i] < '0' || argv[1][i] > '9') && argv[1][i] != '+' && argv[1][i] != '-')
             {
-                ft_putstr_fd("exit : ", STDOUT_FILENO);
+                ft_putstr_fd("exit\n", STDOUT_FILENO);
+                ft_putstr_fd("minishell: exit: ", STDOUT_FILENO);
                 ft_putstr_fd(argv[1], STDOUT_FILENO);
-                ft_putstr_fd(":numeric argument required\n", STDOUT_FILENO);
-                exit(255);
+                ft_putstr_fd(": numeric argument required\n", STDOUT_FILENO);
+                exit(2);
             }
         i++;
     }
     if (argv[1] && argv[2])
     {
-        ft_putstr_fd("exit: too many arguments\n", STDOUT_FILENO);
+        ft_putstr_fd("exit\n", STDOUT_FILENO);
+        ft_putstr_fd("minishell: exit: too many arguments\n", STDOUT_FILENO);
         return (EXIT_FAILURE);
     }
     if (argv[1])

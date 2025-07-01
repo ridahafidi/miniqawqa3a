@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:17:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/30 16:21:53 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/06/30 15:28:45 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,6 +133,6 @@ void    execute_command(t_tree *root, int in, int out, char **env)
         }
         if (errno == ENOENT)
             exit(127);  // No such file or directory
-        exit(126);     // Other execution errors
+        exit(EXIT_FAILURE);     // Other execution errors
     }
 }

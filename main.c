@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:27:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/05/29 20:16:33 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/01 14:27:15 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,10 +57,7 @@ void    shell_loop(char ***env, char ***exported)
     {
         input = readline("minishell> ");
 		if (input == NULL)
-		{
-			printf("exit\n");
-			break ;
-		}
+			ctrl_d_handle(0);
 		if (input[0] != '\0')
 		{
 			add_history(input);

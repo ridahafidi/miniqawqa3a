@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:39:56 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/27 22:46:55 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/01 16:57:01 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,16 +91,24 @@ void    less_and_greater(t_tree *root, int *in , int *out, int flag)
             int fd = open(root->file_name, O_RDONLY);
             if (fd == -1)
             {
-                perror("opening input file failed");
-                exit(EXIT_FAILURE);
+                ft_putstr_fd("minishell: ", 2);
+                ft_putstr_fd(root->file_name, 2);
+                ft_putstr_fd(": No such file or directory\n", 2);
+                // exit(EXIT_FAILURE);
+                exit_status = 1;
+                return ;
             }
             return ;
         }
         *in = open(root->file_name, O_RDONLY);
         if (*in == -1)
         {
-            perror("opening input file failed :");
-            exit(1);
+            ft_putstr_fd("minishell: ", 2);
+            ft_putstr_fd(root->file_name, 2);
+            ft_putstr_fd(": No such file or directory\n", 2);
+            // exit(EXIT_FAILURE);
+            exit_status = 1;
+            return ;
         }
     }
     else if (root->type == GREATER && root->file_name)
