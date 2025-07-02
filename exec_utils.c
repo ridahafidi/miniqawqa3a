@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:17:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/06/30 15:28:45 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/02 18:01:00 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ void    execute_command(t_tree *root, int in, int out, char **env)
     (void)out;
     
     // First check if it's an absolute or relative path
-    if (root->command[0][0] == '/' || root->command[0][0] == '.')
+    if (ft_strchr(root->command[0], '/') || root->command[0][0] == '.')
     {
         if (access(root->command[0], F_OK) == -1)
         {

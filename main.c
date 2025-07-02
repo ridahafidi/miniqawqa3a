@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:27:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/01 14:27:15 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/02 18:15:57 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,13 +75,65 @@ void    shell_loop(char ***env, char ***exported)
 	clear_history();
 }
 
+char    **handle_env_i()
+{
+    char **my_env;
+    char cwd[4096];
+
+    my_env = malloc(sizeof(char *) * 4);
+    if (!my_env)
+        return (NULL);
+    if (!getcwd(cwd, sizeof(cwd)))
+    {
+        perror("getcwd failed ");
+        free(my_env);
+        return (NULL);
+    }
+    my_env[0] = ft_strjoin("PWD=", cwd);
+    my_env[1] = ft_strdup("SHLVL=1");
+    my_env[2] = ft_strdup("_=/usr/bin/env");
+    my_env[3] = NULL;
+    return (my_env);
+}
+
+void    update_shlvl(char ***env)
+{
+    int i;
+    int j;
+    char    *new_shlvl;
+    int new_val;
+
+    i = 0;
+    j = 0;
+    if (!env[0][i])
+        return ;
+    while (env[0][i])
+    {
+        if (!strncmp("SHLVL", env[0][i], ft_strlen("SHLVL") - 1) && env[0][i][ft_strlen("SHLVL")] == '=')
+        {
+            new_val = ft_atoi(&env[0][i][ft_strlen("SHLVL") + 1]);
+            new_val++;
+            new_shlvl = ft_strjoin("SHLVL=", ft_itoa(new_val));
+            free(env[0][i]);
+            env[0][i] = new_shlvl;
+            return ;
+        }
+        i++;
+    }
+}
+
 int main(int ac, char **av, char **env) 
 {
     (void)av;
     (void)ac;
+    char **my_env;
+    
     signal(SIGINT, sigint_handler);
 	signal(SIGQUIT, SIG_IGN);
-    char **my_env = copy_env(env);
+    my_env = copy_env(env);
+    update_shlvl(&my_env);
+    if (!my_env[0])
+        my_env = handle_env_i();
     char **exported = copy_env(env);
     shell_loop(&my_env, &exported);
     free_array(my_env);

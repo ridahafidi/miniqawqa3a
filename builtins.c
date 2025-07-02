@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 17:21:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/01 18:08:30 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/02 17:28:16 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -304,6 +304,8 @@ char    **copy_env(char **env)
 
     len = 0;
     i = 0;
+    if (!env)
+        return (NULL);
     while (env[len])
         len++;
     copy = malloc(sizeof(char *) * (len + 1));
