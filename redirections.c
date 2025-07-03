@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:39:56 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/02 22:46:50 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/03 16:12:37 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,16 +68,22 @@ void    append(t_tree *root, int *in, int *out,int flag)
             int fd = open(root->file_name, O_WRONLY | O_CREAT | O_APPEND, 0644);
             if (fd == -1)
             {
-                perror("opening input file failed");
-                exit(EXIT_FAILURE);
+                ft_putstr_fd("minishell: ", 2);
+                ft_putstr_fd(root->file_name, 2);
+                ft_putstr_fd(": Permission denied\n", 2);
+                // exit(EXIT_FAILURE);
+                exit_status = 1;
             }
             return ;
         }
         *out = open(root->file_name, O_WRONLY | O_CREAT | O_APPEND , 0644);
         if (*out == -1)
         {
-            perror("opening output file failed");
-            exit(1);
+            ft_putstr_fd("minishell: ", 2);
+            ft_putstr_fd(root->file_name, 2);
+            ft_putstr_fd(": Permission denied\n", 2);
+            // exit(EXIT_FAILURE);
+            exit_status = 1;
         } 
     }
 }
@@ -118,16 +124,23 @@ void    less_and_greater(t_tree *root, int *in , int *out, int flag)
             int fd = open(root->file_name, O_WRONLY | O_CREAT | O_TRUNC, 0644);
             if (fd == -1)
             {
-                perror("opening input file failed");
-                exit(EXIT_FAILURE);
+                ft_putstr_fd("minishell: ", 2);
+                ft_putstr_fd(root->file_name, 2);
+                ft_putstr_fd(": Permission denied\n", 2);
+                // exit(EXIT_FAILURE);
+                exit_status = 1;
+                return ;
             }
-            return ;
         }
         *out = open(root->file_name, O_WRONLY | O_CREAT | O_TRUNC, 0644);
         if (*out == -1)
         {
-            perror("openeing out file failed");
-            exit(1);
+            ft_putstr_fd("minishell: ", 2);
+            ft_putstr_fd(root->file_name, 2);
+            ft_putstr_fd(": Permission denied\n", 2);
+            // exit(EXIT_FAILURE);
+            exit_status = 1;
+            return ;
         }
     }
 }

@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/01 17:03:07 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/03 19:04:21 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ void    forker(t_tree *root, t_fd *fd, char ***env, char ***exported)
         signal(SIGINT, child_sigint_handler); // Reset SIGINT for child
         signal(SIGQUIT, SIG_DFL);             // Reset SIGQUIT for child
         redirecting(fd->in, fd->out);
-        if (fd->in == -1)
+        if (fd->in == -1 || fd->out == -1)
             exit(EXIT_FAILURE);
         execute_command(root, fd->in, fd->out, *env);
     }
