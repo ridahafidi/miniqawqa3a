@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/03 20:57:06 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/04 16:34:00 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,8 +169,16 @@ void    execution(t_tree *root,t_fd *fd, char ***env, char ***exported, int flag
     }
     if (root->type == APPEND || root->type == GREATER || root->type == LESS || root->type == HEREDOC)
     {
-        handle_redirections(root, &fd->in, &fd->out, flag, env[0]);
-        execution(root->left, fd, env, exported, 1);
+        if (flag == 0 && !ft_strcmp(root->file_name, "/dev/stdout"))
+        {
+            handle_redirections(root, &fd->in, &fd->out, 1, env[0]);
+            execution(root->left, fd, env, exported, 0);
+        }
+        else
+        {
+            handle_redirections(root, &fd->in, &fd->out, flag, env[0]);
+            execution(root->left, fd, env, exported, 1);
+        }
         return ;
     }
     else if (root->type == COMMAND)

@@ -6,12 +6,13 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:27:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/02 18:15:57 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/04 17:25:40 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 int exit_status = 0;
+
 
 int process_cmd(char *input, char ***env, char ***exported)
 {
@@ -56,23 +57,23 @@ void    shell_loop(char ***env, char ***exported)
     while (!exit)
     {
         input = readline("minishell> ");
-		if (input == NULL)
-			ctrl_d_handle(0);
-		if (input[0] != '\0')
-		{
-			add_history(input);
-			ret = process_cmd(input, env, exported);
-			if (ret == 1)
-				printf("\n");
-			exit = ret;
-		}
-		if (input)
+        if (input == NULL)
+            ctrl_d_handle(0);
+        if (input[0] != '\0')
+        {
+            add_history(input);
+            ret = process_cmd(input, env, exported);
+            if (ret == 1)
+                printf("\n");
+            exit = ret;
+        }
+        if (input)
         {
             free(input);
             input = NULL;
         }
-	}
-	clear_history();
+    }
+    clear_history();
 }
 
 char    **handle_env_i()
@@ -129,7 +130,7 @@ int main(int ac, char **av, char **env)
     char **my_env;
     
     signal(SIGINT, sigint_handler);
-	signal(SIGQUIT, SIG_IGN);
+    signal(SIGQUIT, SIG_IGN);
     my_env = copy_env(env);
     update_shlvl(&my_env);
     if (!my_env[0])

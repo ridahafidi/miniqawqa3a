@@ -1,15 +1,12 @@
-'"
-a
-a.out
+&&
+0422
 ax
-b
 build_tree.c
 builtins.c
-c
+chmod
 exec_utils.c
 execution.c
 expand.c
-export
 free_tree.c
 insert_spaces.c
 leak_tests.sh
@@ -27,4 +24,3 @@ signals.c
 syntax_error.c
 syntax_error_utils.c
 tokenize.c
-x
