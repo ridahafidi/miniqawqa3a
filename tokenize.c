@@ -33,12 +33,12 @@ void free_token_array(char **tokens)
 }
 
 
-// Helper struct for segment
-typedef struct s_segment {
-    char *str;
-    char quote; // 0=unquoted, '\''=single, '"'=double
-    struct s_segment *next;
-} t_segment;
+// // Helper struct for segment
+// typedef struct s_segment {
+//     char *str;
+//     char quote; // 0=unquoted, '\''=single, '"'=double
+//     struct s_segment *next;
+// } t_segment;
 
 static void free_segments(t_segment *seg) {
     t_segment *tmp;

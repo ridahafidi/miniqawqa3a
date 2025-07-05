@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/21 14:03:07 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/04 16:36:17 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/05 16:50:33 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,11 +63,22 @@ int invalid_pipe(char **tokens)
 int special_characters(char *input)
 {
     int i;
+    char quote = 0;
 
     i = 0;
     while (input[i])
     {
-        if (input[i] == ';')
+        if (input[i] == '\'' || input[i] == '"')
+        {
+            if (!quote)
+                quote = input[i];
+            else if (quote == input[i])
+                quote = 0;
+            i++;
+            continue;
+        }
+
+        if (!quote && input[i] == ';')
         {
             ft_putstr_fd("minishell: syntax error near unexpected token `;'\n", 2);
             exit_status = 2;

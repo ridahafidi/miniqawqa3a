@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 17:21:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/04 20:53:25 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/05 17:16:06 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,14 +173,7 @@ int ft_cd(char **argv, char ***env)
     if (argv[2])
         return (EXIT_FAILURE);
     if (argv[1])
-    {
-        path = argv[1];
-        if (ft_strchr(path, '$'))
-        {
-            expanded = expand(argv + 1, env[0], exit_status);
-            path = expanded[0];
-        }   
-    }
+        path = argv[1]; 
     else
         path = NULL;
     if (getcwd(cwd, sizeof(cwd)) == NULL)

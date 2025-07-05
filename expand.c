@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/30 17:33:32 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/05 19:30:10 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,7 +144,6 @@ char *expand_string(const char *str, char **env, int status)
     char    *result;
     char    *tmp;
     int     i;
-    char    quote;
     int     real_status;
 
     if (!str)
@@ -155,33 +154,17 @@ char *expand_string(const char *str, char **env, int status)
         return (NULL);
 
     i = 0;
-    quote = 0;
     while (str[i])
     {
-        if ((str[i] == '\'' || str[i] == '\"') && (!quote || quote == str[i]))
-        {
-            if (!quote)
-                quote = str[i];
-            else
-                quote = 0;
-            i++;
-            continue;
-        }
-        
-        // Handle variable expansion outside single quotes
-        if (str[i] == '$' && quote != '\'')
+        if (str[i] == '$')
         {
             // Handle $? - exit status
             if (str[i + 1] == '?')
             {
                 if (WIFEXITED(status))
-                {
                     real_status = WEXITSTATUS(status);
-                }
                 else
-                {
                     real_status = status;
-                }
                 char *status_str = ft_itoa(real_status);
                 tmp = ft_strjoin(result, status_str);
                 free(status_str);
@@ -193,60 +176,82 @@ char *expand_string(const char *str, char **env, int status)
             // Handle $$ - process ID
             if (str[i + 1] == '$')
             {
-                char pid_str[32];
-                snprintf(pid_str, sizeof(pid_str), "%d", getpid());
+                char *pid_str;
+                pid_str = ft_itoa(getpid());
                 tmp = ft_strjoin(result, pid_str);
                 free(result);
                 result = tmp;
                 i += 2;
                 continue;
             }
-            // Handle regular variables
+            // Handle ${VAR}
+            if (str[i + 1] == '{')
+            {
+                int start = i + 2;
+                int j = start;
+                while (str[j] && str[j] != '}')
+                    j++;
+                if (str[j] == '}' && j > start) // require at least one char
+                {
+                    char *var_name = ft_substr(str, start, j - start);
+                    char *var_value = get_var_value(var_name, env, status);
+                    free(var_name);
+                    if (var_value)
+                    {
+                        tmp = ft_strjoin(result, var_value);
+                        free(result);
+                        result = tmp;
+                        free(var_value);
+                    }
+                    i = j + 1; // move past the }
+                    continue;
+                }
+                else
+                {
+                    // Invalid ${, treat as literal '$'
+                    char curr[2] = {'$', '\0'};
+                    tmp = ft_strjoin(result, curr);
+                    free(result);
+                    result = tmp;
+                    i++;
+                    continue;
+                }
+            }
+            // Handle regular variable: [a-zA-Z_][a-zA-Z0-9_]*
             if (ft_isalpha(str[i + 1]) || str[i + 1] == '_')
             {
                 int start = i + 1;
-                while (str[i + 1] && (ft_isalnum(str[i + 1]) || str[i + 1] == '_'))
+                i++; // move to first char of var name
+                while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
                     i++;
-                char *var_name = ft_substr(str, start, i - start + 1);
-                char *var_value = NULL;
-                int j = 0;
-                
-                while (env && env[j])
-                {
-                    if (!ft_strncmp(env[j], var_name, ft_strlen(var_name)) 
-                        && env[j][ft_strlen(var_name)] == '=')
-                    {
-                        var_value = env[j] + ft_strlen(var_name) + 1;
-                        break;
-                    }
-                    j++;
-                }
+                int len = i - start;
+                char *var_name = ft_substr(str, start, len);
+                char *var_value = get_var_value(var_name, env, status);
+                free(var_name);
                 if (var_value)
                 {
                     tmp = ft_strjoin(result, var_value);
                     free(result);
                     result = tmp;
+                    free(var_value);
                 }
-                free(var_name);
-                i++;
                 continue;
             }
-            // Single $ without variable name
-            if (!ft_isalnum(str[i + 1]) && str[i + 1] != '_' && str[i + 1] != '?' && str[i + 1] != '$')
-            {
-                tmp = ft_strjoin(result, "$");
-                free(result);
-                result = tmp;
-                i++;
-                continue;
-            }
+            // Single $ without valid variable name
+            char curr[2] = {'$', '\0'};
+            tmp = ft_strjoin(result, curr);
+            free(result);
+            result = tmp;
+            i++;
         }
-        // Add regular character
-        char curr[2] = {str[i], '\0'};
-        tmp = ft_strjoin(result, curr);
-        free(result);
-        result = tmp;
-        i++;
+        else
+        {
+            char curr[2] = {str[i], '\0'};
+            tmp = ft_strjoin(result, curr);
+            free(result);
+            result = tmp;
+            i++;
+        }
     }
     return result;
 }

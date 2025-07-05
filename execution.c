@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/04 16:34:00 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/05 20:28:23 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,11 @@ void    forker(t_tree *root, t_fd *fd, char ***env, char ***exported)
         saved_stdin = dup(STDIN_FILENO);
         saved_stdout = dup(STDOUT_FILENO);
         redirecting(fd->in, fd->out);
+        if (fd->in == -1 || fd->out == -1)
+        {
+            exit_status = 1;
+            return ;
+        }
         exit_status = handle_builtins(root, fd->in, fd->out, env, exported, exit_status);
         dup2(saved_stdin, STDIN_FILENO);
         dup2(saved_stdout, STDOUT_FILENO);

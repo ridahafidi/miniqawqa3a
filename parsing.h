@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:24:33 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/05/28 19:56:01 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/05 19:30:23 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,15 @@ typedef struct s_token_type
 	int				full_len;
 	int				end_len;
 }					t_token_type;
+
+// Helper struct for segment
+typedef struct s_segment {
+    char *str;
+    char quote; // 0=unquoted, '\''=single, '"'=double
+    int was_quoted; // New: tracks if this was originally quoted
+    struct s_segment *next;
+} t_segment;
+
 
 typedef enum type
 {
@@ -80,7 +89,7 @@ int					is_quoted_token(char *token, char *quote);
 char				**initial_tokenization(char *input);
 char				*add_delimiter_spaces(char *input);
 int					check_valid_quotes(char *input);
-int					invalid_redirections(char **tokens);
+int 				invalid_redirections(char **tokens);
 int					check_redirection(char *token);
 int 				is_pipe(char *token);
 int					invalid_pipe(char **tokens);
