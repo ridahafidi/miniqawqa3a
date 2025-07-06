@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/05 19:30:10 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/06 18:58:49 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,7 @@ int	find_var_end(char *str)
     return i;
 }
 
-char *expand_string(const char *str, char **env, int status)
+char *expand_string(char *str, char **env, int status)
 {
     char    *result;
     char    *tmp;

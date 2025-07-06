@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:39:56 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/04 17:11:09 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/06 21:29:53 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,7 +158,6 @@ void handle_redirections(t_tree *root, int *in, int *out, int flag, char **env)
 {
     if (!root)
         return;
-
     if ((root->type == LESS || root->type == GREATER) && root->file_name)
         less_and_greater(root, in, out, flag);
     else if (root->type == APPEND && root->file_name)
