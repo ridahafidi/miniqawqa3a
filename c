@@ -1,10 +1,13 @@
-
 &&
 >
 0422
+a
+a.out
 ax
+b
 build_tree.c
 builtins.c
+c
 chmod
 exec_utils.c
 execution.c
@@ -27,3 +30,4 @@ syntax_error.c
 syntax_error_utils.c
 tokenize.c
 x
+z

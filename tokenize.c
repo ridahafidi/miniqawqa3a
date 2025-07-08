@@ -163,10 +163,10 @@ char **initial_tokenization_with_env(char *input, char **env, int exit_status) {
         }
     }
     tokens[t] = NULL;
-    if (!invalid_redirections(tokens)) {
-        free_token_array(tokens);
-        return NULL;
-    }
+    // if (!invalid_redirections(tokens)) {
+    //     free_token_array(tokens);
+    //     return NULL;
+    // }
     return tokens;
 }
 

@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 15:23:36 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/06 21:30:32 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/08 18:37:42 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,11 +66,11 @@ typedef struct s_fd
 
 void    execute_command(t_tree *root, int in, int out, char **env);
 void    free_tree(t_tree **root);
-void handle_redirections(t_tree *root, int *in, int *out, int flag, char **env);
+t_tree *handle_redirections(t_tree *root, int *in, int *out, char **env);
 int     is_builtin(char *cmd);
 void rdirectin_out(int in, int out);
 int handle_builtins(t_tree *root, int in, int out, char ***env, char ***exported, int status);
-void    execution(t_tree *root, t_fd *fd, char ***env, char ***exported, int flag);
+void    execution(t_tree *root, t_fd *fd, char ***env, char ***exported);
 void    free_array(char **str);
 char    **copy_env(char **env);
 int ft_strcmp(char *s1, char *s2);

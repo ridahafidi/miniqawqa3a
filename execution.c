@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/05 20:28:23 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/08 18:49:15 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,10 @@ void    forker(t_tree *root, t_fd *fd, char ***env, char ***exported)
         if (fd->in == -1 || fd->out == -1)
         {
             exit_status = 1;
+            dup2(saved_stdin, STDIN_FILENO);
+            dup2(saved_stdout, STDOUT_FILENO);
+            close(saved_stdin);
+            close(saved_stdout);
             return ;
         }
         exit_status = handle_builtins(root, fd->in, fd->out, env, exported, exit_status);
@@ -143,7 +147,7 @@ void handle_pipe(t_pid *pid, t_fd *fd, char ***env, char ***exported, t_tree *ro
         signal(SIGQUIT, SIG_DFL);
         close(pfd[0]);
         fd->out = pfd[1];
-        execution(root->left, fd, env, exported, 0);
+        execution(root->left, fd, env, exported);
         free_exit(pid, fd);
     }
     pid->right_pid = fork();
@@ -153,16 +157,18 @@ void handle_pipe(t_pid *pid, t_fd *fd, char ***env, char ***exported, t_tree *ro
         signal(SIGQUIT, SIG_DFL);
         close(pfd[1]);
         fd->in = pfd[0];
-        execution(root->right, fd, env, exported, 0);
+        execution(root->right, fd, env, exported);
         free_exit(pid, fd);
     }
     close_wait(pfd, pid, fd);
 }
 
-void    execution(t_tree *root,t_fd *fd, char ***env, char ***exported, int flag)
+void    execution(t_tree *root,t_fd *fd, char ***env, char ***exported)
 {
     int pfd[2];
+    int ret;
     t_pid *pid;
+    t_tree *cmd;
 
     pid = malloc(sizeof(t_pid));
     if (!pid)
@@ -174,16 +180,28 @@ void    execution(t_tree *root,t_fd *fd, char ***env, char ***exported, int flag
     }
     if (root->type == APPEND || root->type == GREATER || root->type == LESS || root->type == HEREDOC)
     {
-        if (flag == 0 && !ft_strcmp(root->file_name, "/dev/stdout"))
+        cmd = handle_redirections(root, &fd->in, &fd->out, env[0]);
+        // If redirections failed, clean up and return
+        if (exit_status != 0)
         {
-            handle_redirections(root, &fd->in, &fd->out, 1, env[0]);
-            execution(root->left, fd, env, exported, 0);
+            if (fd->in != STDIN_FILENO)
+                close(fd->in);
+            if (fd->out != STDOUT_FILENO)
+                close(fd->out);
+            free(pid);
+            return;
         }
+        // Execute the command with the redirections applied
+        if (cmd)
+            forker(cmd, fd, env, exported);
         else
-        {
-            handle_redirections(root, &fd->in, &fd->out, flag, env[0]);
-            execution(root->left, fd, env, exported, 1);
-        }
+            forker(NULL, fd, env, exported); // Handle redirection-only commands
+        // Clean up file descriptors
+        if (fd->in != STDIN_FILENO)
+            close(fd->in);
+        if (fd->out != STDOUT_FILENO)
+            close(fd->out);
+        free(pid);
         return ;
     }
     else if (root->type == COMMAND)
@@ -194,6 +212,6 @@ void    execution(t_tree *root,t_fd *fd, char ***env, char ***exported, int flag
 
 int    initialize(t_tree *root, t_fd *fd, char ***env, char ***exported)
 {
-    execution(root, fd, env, exported, 0);
+    execution(root, fd, env, exported);
     return (exit_status);
 }

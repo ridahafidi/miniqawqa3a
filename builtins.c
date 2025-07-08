@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 17:21:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/05 17:16:06 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/08 16:46:57 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,7 +171,10 @@ int ft_cd(char **argv, char ***env)
     char    new_cwd[4096];
     
     if (argv[2])
+    {
+        ft_putstr_fd("minishell: cd: too many arguments\n", 2);
         return (EXIT_FAILURE);
+    }
     if (argv[1])
         path = argv[1]; 
     else

@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:39:56 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/06 21:29:53 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/08 18:53:19 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,118 +59,98 @@ int handle_heredoc(char *delimiter, char **env)
     return pipefd[0]; // Return read end of the pipe
 }
 
-void    append(t_tree *root, int *in, int *out,int flag)
+void    append(t_tree *root, int *in, int *out)
 {
     if (root->type == APPEND && root->file_name)
     {
-        if (flag)
+        if (*out != STDOUT_FILENO)
+            close(*out); // Close previous output fd
+        *out = open(root->file_name, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        if (*out == -1)
         {
-            int fd = open(root->file_name, O_WRONLY | O_CREAT | O_APPEND, 0644);
-            if (fd == -1)
-            {
-                ft_putstr_fd("minishell: ", 2);
-                ft_putstr_fd(root->file_name, 2);
-                ft_putstr_fd(": Permission denied\n", 2);
-                // exit(EXIT_FAILURE);
-                exit_status = 1;
-            }
-            return ;
-        }
-        else
-        {
-            *out = open(root->file_name, O_WRONLY | O_CREAT | O_APPEND , 0644);
-            if (*out == -1)
-            {
-                ft_putstr_fd("minishell: ", 2);
-                ft_putstr_fd(root->file_name, 2);
-                ft_putstr_fd(": Permission denied\n", 2);
-                // exit(EXIT_FAILURE);
-                exit_status = 1;
-            } 
+            ft_putstr_fd("minishell: ", 2);
+            ft_putstr_fd(root->file_name, 2);
+            ft_putstr_fd(": Permission denied\n", 2);
+            exit_status = 1;
         }
     }
 }
 
-void    less_and_greater(t_tree *root, int *in , int *out, int flag)
+void    less_and_greater(t_tree *root, int *in , int *out)
 {
     if (root->type == LESS && root->file_name)
     {
-        if (flag)
-        {
-            int fd = open(root->file_name, O_RDONLY);
-            if (fd == -1)
-            {
-                ft_putstr_fd("minishell: ", 2);
-                ft_putstr_fd(root->file_name, 2);
-                ft_putstr_fd(": No such file or directory\n", 2);
-                // exit(EXIT_FAILURE);
-                exit_status = 1;
-                return ;
-            }
-            return ;
-        }
-        else
-        {
+            if (*in != STDIN_FILENO)
+                close(*in); // Close previous input fd
             *in = open(root->file_name, O_RDONLY);
             if (*in == -1)
             {
                 ft_putstr_fd("minishell: ", 2);
                 ft_putstr_fd(root->file_name, 2);
                 ft_putstr_fd(": No such file or directory\n", 2);
-                // exit(EXIT_FAILURE);
                 exit_status = 1;
-                return ;
             }
-        }
     }
     else if (root->type == GREATER && root->file_name)
     {
-        if (flag)
-        {
-            int fd = open(root->file_name, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            if (fd == -1)
-            {
-                ft_putstr_fd("minishell: ", 2);
-                ft_putstr_fd(root->file_name, 2);
-                ft_putstr_fd(": Permission denied\n", 2);
-                // exit(EXIT_FAILURE);
-                exit_status = 1;
-                return ;
-            }
-        }
-        else
-        {
+            if (*out != STDOUT_FILENO)
+                close(*out); // Close previous output fd
             *out = open(root->file_name, O_WRONLY | O_CREAT | O_TRUNC, 0644);
             if (*out == -1)
             {
                 ft_putstr_fd("minishell: ", 2);
                 ft_putstr_fd(root->file_name, 2);
                 ft_putstr_fd(": Permission denied\n", 2);
-                // exit(EXIT_FAILURE);
                 exit_status = 1;
-                return ;
             }
-        }
     }
 }
 
-void handle_redirections(t_tree *root, int *in, int *out, int flag, char **env)
+t_tree *handle_redirections(t_tree *root, int *in, int *out, char **env)
 {
     if (!root)
-        return;
-    if ((root->type == LESS || root->type == GREATER) && root->file_name)
-        less_and_greater(root, in, out, flag);
-    else if (root->type == APPEND && root->file_name)
-        append(root, in, out, flag);
-    else if (root->type == HEREDOC && root->file_name)
+        return NULL;
+    
+    // If this is a command node, return it directly
+    if (root->type == COMMAND)
+        return root;
+    
+    // Handle redirection nodes
+    if (root->type == LESS || root->type == GREATER || 
+        root->type == APPEND || root->type == HEREDOC)
     {
-        if (flag)
-            return;
-        *in = handle_heredoc(root->file_name, env); // Use heredoc's read end
-        if (*in == -1)
+        // First, recursively process the left subtree to find more redirections
+        t_tree *cmd = handle_redirections(root->left, in, out, env);
+        if (!cmd && exit_status == 1)
+            return NULL;
+        // Then handle this redirection
+        if ((root->type == GREATER || root->type == LESS )&& root->file_name)
         {
-            perror("heredoc failed");
-            exit(1);
+            less_and_greater(root, in ,out);
+            if (*in == -1 || *out == -1)
+                return (NULL);
+            return(cmd);
         }
+        else if (root->type == APPEND && root->file_name)
+        {
+           append(root, in , out);
+           if (*in == -1 || *out == -1)
+                return (NULL);
+           return(cmd);
+        }
+        else if (root->type == HEREDOC && root->file_name)
+        {
+            if (*in != STDIN_FILENO)
+                close(*in); // Close previous input fd
+            *in = handle_heredoc(root->file_name, env);
+            if (*in == -1)
+            {
+                perror("heredoc failed");
+                exit_status = 1;
+                return NULL;
+            }
+        }
+          return cmd;
     }
+    return handle_redirections(root->left, in, out, env);
 }
