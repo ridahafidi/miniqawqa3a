@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:39:56 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/08 18:53:19 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/10 23:11:03 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,9 @@ int handle_heredoc(char *delimiter, char **env)
     signal(SIGINT, heredoc_sigint_handler); // Handle SIGINT during heredoc
     tmp_delimiter[0] = ft_strdup(delimiter);
     tmp_delimiter[1] = NULL;
-    strip_quotes_from_tokens(tmp_delimiter, 0);
+    // strip_quotes_from_tokens(tmp_delimiter, 0);
+    tmp_delimiter[0] = remove_quotes_from_string(delimiter);
+    // printf("%s\n", delimiter);
     while (1)
     {
         line[0] = readline("> ");

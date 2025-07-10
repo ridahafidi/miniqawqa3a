@@ -2,7 +2,6 @@
 >
 0422
 a
-a.out
 ax
 b
 build_tree.c

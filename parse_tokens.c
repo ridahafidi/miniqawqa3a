@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/18 14:52:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/05 17:06:02 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/10 23:07:55 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,6 +112,7 @@ t_tree	*parse_token_subset(char **tokens, int start, int end)
 {
 	int		i;
 	int		arg_count;
+	t_tree *ast;
 	t_tree	*cmd_node;
 	t_tree	*root;
 	t_tree	*redir_node;
@@ -129,7 +130,18 @@ t_tree	*parse_token_subset(char **tokens, int start, int end)
 		free (cmd_args);
 		return (NULL);
 	}
-	return (process_redirections(cmd_node, tokens, start, end));
+	ast = process_redirections(cmd_node, tokens, start, end);
+	i = 0;
+	if (ast->type != HEREDOC && ast->command)
+	{
+	i = 0;
+	while (ast->command[i])
+	{
+		ast->command[i] = remove_quotes_from_string(ast->command[i]);
+		i++;
+	}
+	}
+	return (ast);
 }
 
 t_tree	*create_pipe_node(void)
@@ -163,6 +175,8 @@ t_tree	*parse_tokens(char **tokens)
 {
 	int		i;
 	int		start;
+	int		heredoc_flag;
+	t_tree	*ast;
 	t_tree	*pipe_node;
 	t_tree	*cmd_node;
 	t_tree	*redirection_node;
@@ -171,6 +185,7 @@ t_tree	*parse_tokens(char **tokens)
 	i = 0;
 	while (tokens[i])
 	{
+		heredoc_flag = 0;
 		if (ft_strcmp(tokens[i], "|") == 0)
 		{
 			pipe_node = create_pipe_node();

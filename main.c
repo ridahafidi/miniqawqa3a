@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:27:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/04 17:25:40 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/10 22:24:53 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ int process_cmd(char *input, char ***env, char ***exported)
     if (!tokens)
     {
         free(fds);
+        exit_status = 2;
         return (0);
     }
     ast = parse_tokens(tokens);

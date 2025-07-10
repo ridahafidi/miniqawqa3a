@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:24:33 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/06 21:30:38 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/10 22:32:42 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,9 @@ typedef struct s_tree
 	type			type;
 }					t_tree;
 
+int validate_redirections_syntax(char **tokens);
+int is_complete_quoted_token(char *token);
+char *remove_quotes_from_string(char *str);
 int					is_operator_char(char c);
 char *expand_string(char *str, char **env, int status);
 char				**tokenize_input(char *input, char **env, int status);
