@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/06 18:58:49 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/12 18:59:19 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,6 +145,8 @@ char *expand_string(char *str, char **env, int status)
     char    *tmp;
     int     i;
     int     real_status;
+    int     in_single_quote;
+    int     in_double_quote;
 
     if (!str)
         return (NULL);
@@ -154,9 +156,27 @@ char *expand_string(char *str, char **env, int status)
         return (NULL);
 
     i = 0;
+    in_single_quote = 0;
+    in_double_quote = 0;
+    
     while (str[i])
     {
-        if (str[i] == '$')
+        // Handle quote state changes
+        if (str[i] == '\'' && !in_double_quote)
+        {
+            in_single_quote = !in_single_quote;
+            i++; // Skip the quote character itself
+            continue;
+        }
+        if (str[i] == '"' && !in_single_quote)
+        {
+            in_double_quote = !in_double_quote;
+            i++; // Skip the quote character itself
+            continue;
+        }
+        
+        // Handle variable expansion (only if not in single quotes)
+        if (str[i] == '$' && !in_single_quote)
         {
             // Handle $? - exit status
             if (str[i + 1] == '?')
@@ -246,6 +266,7 @@ char *expand_string(char *str, char **env, int status)
         }
         else
         {
+            // Regular character (including $ inside single quotes)
             char curr[2] = {str[i], '\0'};
             tmp = ft_strjoin(result, curr);
             free(result);

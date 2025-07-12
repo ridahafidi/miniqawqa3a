@@ -72,98 +72,98 @@ void free_token_array(char **tokens)
 //     struct s_segment *next;
 // } t_segment;
 
-static void free_segments(t_segment *seg) {
-    t_segment *tmp;
-    while (seg) {
-        tmp = seg->next;
-        free(seg->str);
-        free(seg);
-        seg = tmp;
-    }
-}
+// static void free_segments(t_segment *seg) {
+//     t_segment *tmp;
+//     while (seg) {
+//         tmp = seg->next;
+//         free(seg->str);
+//         free(seg);
+//         seg = tmp;
+//     }
+// }
 
-// Improved: Tokenize input into segments with correct quote context for expansion
-static t_segment *get_next_segment(const char *input, size_t *i) {
-    size_t start = *i;
-    char quote = 0;
-    size_t len = 0;
-    t_segment *seg;
-    // If at a quote, start a quoted segment
-    if (input[*i] == '\'' || input[*i] == '"') {
-        quote = input[(*i)++];
-        start = *i;
-        while (input[*i]) {
-            if (input[*i] == quote)
-                break;
-            (*i)++;
-        }
-        len = *i - start;
-        seg = malloc(sizeof(t_segment));
-        seg->str = malloc(len + 1);
-        if (len)
-            memcpy(seg->str, input + start, len);
-        seg->str[len] = 0;
-        seg->quote = quote;
-        seg->next = NULL;
-        if (input[*i] == quote)
-            (*i)++;
-        return seg;
-    } else {
-        // Unquoted: collect until next quote or space
-        start = *i;
-        while (input[*i] && input[*i] != ' ' && input[*i] != '\'' && input[*i] != '"')
-            (*i)++;
-        len = *i - start;
-        if (len == 0)
-            return NULL;
-        seg = malloc(sizeof(t_segment));
-        seg->str = malloc(len + 1);
-        if (len)
-            memcpy(seg->str, input + start, len);
-        seg->str[len] = 0;
-        seg->quote = 0;
-        seg->next = NULL;
-        return seg;
-    }
-}
+// // Improved: Tokenize input into segments with correct quote context for expansion
+// static t_segment *get_next_segment(const char *input, size_t *i) {
+//     size_t start = *i;
+//     char quote = 0;
+//     size_t len = 0;
+//     t_segment *seg;
+//     // If at a quote, start a quoted segment
+//     if (input[*i] == '\'' || input[*i] == '"') {
+//         quote = input[(*i)++];
+//         start = *i;
+//         while (input[*i]) {
+//             if (input[*i] == quote)
+//                 break;
+//             (*i)++;
+//         }
+//         len = *i - start;
+//         seg = malloc(sizeof(t_segment));
+//         seg->str = malloc(len + 1);
+//         if (len)
+//             memcpy(seg->str, input + start, len);
+//         seg->str[len] = 0;
+//         seg->quote = quote;
+//         seg->next = NULL;
+//         if (input[*i] == quote)
+//             (*i)++;
+//         return seg;
+//     } else {
+//         // Unquoted: collect until next quote or space
+//         start = *i;
+//         while (input[*i] && input[*i] != ' ' && input[*i] != '\'' && input[*i] != '"')
+//             (*i)++;
+//         len = *i - start;
+//         if (len == 0)
+//             return NULL;
+//         seg = malloc(sizeof(t_segment));
+//         seg->str = malloc(len + 1);
+//         if (len)
+//             memcpy(seg->str, input + start, len);
+//         seg->str[len] = 0;
+//         seg->quote = 0;
+//         seg->next = NULL;
+//         return seg;
+//     }
+// }
 
 
-// Merge segments into a single string, expanding variables as needed
-static char *merge_and_expand_segments(t_segment *head, char **env, int exit_status) {
-    size_t total = 0;
-    t_segment *seg = head;
-    char *expanded, *result;
-    // First, expand and count total length
-    seg = head;
-    while (seg) {
-        if (seg->quote == '\'') {
-            // Single-quoted: no expansion
-            total += strlen(seg->str);
-        } else {
-            // Unquoted or double-quoted: expand
-            expanded = expand_string(seg->str, env, exit_status);
-            total += strlen(expanded);
-            if (expanded != seg->str)
-                free(expanded);
-        }
-        seg = seg->next;
-    }
-    result = malloc(total + 1);
-    result[0] = 0;
-    seg = head;
-    while (seg) {
-        if (seg->quote == '\'') {
-            strcat(result, seg->str);
-        } else {
-            expanded = expand_string(seg->str, env, exit_status);
-            strcat(result, expanded);
-            if (expanded != seg->str)
-                free(expanded);
-        }
-        seg = seg->next;
-    }
-    return result;
-}
+// // Merge segments into a single string, expanding variables as needed
+// static char *merge_and_expand_segments(t_segment *head, char **env, int exit_status) {
+//     size_t total = 0;
+//     t_segment *seg = head;
+//     char *expanded, *result;
+//     // First, expand and count total length
+//     seg = head;
+//     while (seg) {
+//         if (seg->quote == '\'') {
+//             // Single-quoted: no expansion
+//             total += strlen(seg->str);
+//         } else {
+//             // Unquoted or double-quoted: expand
+//             expanded = expand_string(seg->str, env, exit_status);
+//             total += strlen(expanded);
+//             if (expanded != seg->str)
+//                 free(expanded);
+//         }
+//         seg = seg->next;
+//     }
+//     result = malloc(total + 1);
+//     result[0] = 0;
+//     seg = head;
+//     while (seg) {
+//         if (seg->quote == '\'') {
+//             strcat(result, seg->str);
+//         } else {
+//             expanded = expand_string(seg->str, env, exit_status);
+//             strcat(result, expanded);
+//             if (expanded != seg->str)
+//                 free(expanded);
+//         }
+//         seg = seg->next;
+//     }
+//     return result;
+// }
 
 // Bash-like tokenizer: merges quoted/unquoted segments, splits only at unquoted spaces
 char **initial_tokenization_with_env(char *input, char **env, int exit_status)
@@ -226,10 +226,9 @@ char **initial_tokenization_with_env(char *input, char **env, int exit_status)
         
         strncpy(tokens[token_count], input + start, len);
         tokens[token_count][len] = '\0';
-        
+        printf("token == %s\n", tokens[token_count]);
         // Expand variables if needed
-        if (quote_type != 0)
-            tokens[token_count] = expand_string(tokens[token_count], env, exit_status);
+        tokens[token_count] = expand_string(tokens[token_count], env, exit_status);
         int x = 0;
         // printf("%s\n", tokens[token_count]);
         // while (x < token_count)
