@@ -6,11 +6,53 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/18 14:52:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/10 23:07:55 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/11 15:12:26 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+void strip_quotes_from_ast(t_tree *ast)
+{
+    int i;
+    char *new_str;
+    
+    if (!ast)
+        return;
+    
+    // If this is a command node, strip quotes from its arguments
+    if (ast->type == COMMAND && ast->command)
+    {
+        i = 0;
+        while (ast->command[i])
+        {
+            new_str = remove_quotes_from_string(ast->command[i]);
+            if (new_str)
+            {
+                free(ast->command[i]);
+                ast->command[i] = new_str;
+            }
+            i++;
+        }
+    }
+    
+    // For heredoc nodes, DON'T strip quotes from the delimiter (file_name)
+    // but still process the left child (command)
+    if (ast->type == HEREDOC)
+    {
+        // Only process the left child (command), skip the delimiter
+        if (ast->left)
+            strip_quotes_from_ast(ast->left);
+        // Don't process right child or file_name for heredoc
+        return;
+    }
+    
+    // For all other redirection types, process both children
+    if (ast->left)
+        strip_quotes_from_ast(ast->left);
+    if (ast->right)
+        strip_quotes_from_ast(ast->right);
+}
 
 t_tree	*create_command_node(char **cmd_args)
 {
@@ -131,16 +173,17 @@ t_tree	*parse_token_subset(char **tokens, int start, int end)
 		return (NULL);
 	}
 	ast = process_redirections(cmd_node, tokens, start, end);
-	i = 0;
-	if (ast->type != HEREDOC && ast->command)
-	{
-	i = 0;
-	while (ast->command[i])
-	{
-		ast->command[i] = remove_quotes_from_string(ast->command[i]);
-		i++;
-	}
-	}
+	strip_quotes_from_ast(ast);
+	// if (ast->type != HEREDOC && ast->command)
+	// {
+	// i = 0;
+	// while (ast->command[i])
+	// {
+	// 	printf("here\n");
+	// 	ast->command[i] = remove_quotes_from_string(ast->command[i]);
+	// 	i++;
+	// }
+	// }
 	return (ast);
 }
 
