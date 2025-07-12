@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/12 18:59:19 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/12 20:20:52 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,7 @@ int	find_var_end(char *str)
     return i;
 }
 
-char *expand_string(char *str, char **env, int status)
+char *expand_string(char *str, char **env, int status, int heredoc)
 {
     char    *result;
     char    *tmp;
@@ -161,22 +161,44 @@ char *expand_string(char *str, char **env, int status)
     
     while (str[i])
     {
-        // Handle quote state changes
+        // Handle quote state changes (but don't strip quotes unless heredoc mode)
         if (str[i] == '\'' && !in_double_quote)
         {
             in_single_quote = !in_single_quote;
-            i++; // Skip the quote character itself
+            if (heredoc == 1) // In heredoc mode, skip quotes entirely
+            {
+                i++;
+                continue;
+            }
+            // In normal mode, include the quote character
+            char curr[2] = {str[i], '\0'};
+            tmp = ft_strjoin(result, curr);
+            free(result);
+            result = tmp;
+            i++;
             continue;
         }
         if (str[i] == '"' && !in_single_quote)
         {
             in_double_quote = !in_double_quote;
-            i++; // Skip the quote character itself
+            if (heredoc == 1) // In heredoc mode, skip quotes entirely
+            {
+                i++;
+                continue;
+            }
+            // In normal mode, include the quote character
+            char curr[2] = {str[i], '\0'};
+            tmp = ft_strjoin(result, curr);
+            free(result);
+            result = tmp;
+            i++;
             continue;
         }
         
-        // Handle variable expansion (only if not in single quotes)
-        if (str[i] == '$' && !in_single_quote)
+        // Handle variable expansion
+        // For heredoc: expand everything (ignore quotes)
+        // For normal: only expand if not in single quotes
+        if (str[i] == '$' && (heredoc == 1 || !in_single_quote))
         {
             // Handle $? - exit status
             if (str[i + 1] == '?')
@@ -295,7 +317,7 @@ char	**expand(char **argv, char **env, int status)
 	i = 0;
 	while (i < len)
 	{
-		expanded[i] = expand_string(argv[i], env, status);
+		expanded[i] = expand_string(argv[i], env, status, 1);
 		i++;
 	}
 	expanded[i] = NULL;

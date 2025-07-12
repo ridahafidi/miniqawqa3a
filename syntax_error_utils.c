@@ -3,20 +3,24 @@
 /*                                                        :::      ::::::::   */
 /*   syntax_error_utils.c                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yel-qori <yel-qori@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/21 18:24:42 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/05/22 15:09:14 by yel-qori         ###   ########.fr       */
+/*   Updated: 2025/07/12 20:39:40 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "parsing.h"
+#include "minishell.h"
 
-int is_pipe(char *token)
+// int is_pipe(char *token)
+// {
+//     if (!token)
+//         return (0);
+//     return (ft_strcmp(token, "|") == 0);
+// }
+
+void    syntaxe_error()
 {
-    if (!token)
-        return (0);
-    return (ft_strcmp(token, "|") == 0);
+    ft_putstr_fd("bash: syntax error near unexpected token", 2);
+    exit_status = 2;
 }
-
-

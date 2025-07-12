@@ -226,17 +226,11 @@ char **initial_tokenization_with_env(char *input, char **env, int exit_status)
         
         strncpy(tokens[token_count], input + start, len);
         tokens[token_count][len] = '\0';
-        printf("token == %s\n", tokens[token_count]);
         // Expand variables if needed
-        tokens[token_count] = expand_string(tokens[token_count], env, exit_status);
-        int x = 0;
-        // printf("%s\n", tokens[token_count]);
-        // while (x < token_count)
-        // {
-        //     printf("%s\n", tokens[x]);
-        //     x++;
-        // }
-        
+                // printf("token == %s\n", tokens[token_count]);
+
+        tokens[token_count] = expand_string(tokens[token_count], env, exit_status, 0);
+        // printf("token == %s\n", tokens[token_count]);
         token_count++;
     }
     
@@ -260,6 +254,11 @@ char **tokenize_input(char *input, char **env, int exit_status)
     if (!spaced_input)
         return NULL;
     tokens = initial_tokenization_with_env(spaced_input, env, exit_status);
+    if (check_syntax_errors(tokens))
+    {
+        exit_status = 2;
+        return NULL;
+    }
     free(spaced_input);
     if (!tokens)
         return NULL;

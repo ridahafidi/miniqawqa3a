@@ -6,11 +6,75 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/18 14:52:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/11 15:12:26 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/12 20:33:57 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+int	is_redirection(char *token)
+{
+	return (!ft_strcmp(token, "<") || !ft_strcmp(token, ">")
+		|| !ft_strcmp(token, ">>") || !ft_strcmp(token, "<<"));
+}
+
+int	is_pipe(char *token)
+{
+	return (!ft_strcmp(token, "|"));
+}
+
+int	check_syntax_errors(char **tokens)
+{
+	int	i;
+
+	if (!tokens || !tokens[0])
+		return (0);
+
+	if (is_pipe(tokens[0]))
+	{
+		ft_putstr_fd("minishell: syntax error near unexpected token `|'\n", 2);
+		return (1);
+	}
+
+	i = 0;
+	while (tokens[i])
+	{
+		if (is_redirection(tokens[i]))
+		{
+			if (!tokens[i + 1] || is_pipe(tokens[i + 1]) || is_redirection(tokens[i + 1]))
+			{
+				ft_putstr_fd("minishell: syntax error near unexpected token `", 2);
+				if (!tokens[i + 1])
+					ft_putstr_fd("newline", 2);
+				else
+					ft_putstr_fd(tokens[i + 1], 2);
+				ft_putstr_fd("'\n", 2);
+				return (1);
+			}
+		}
+		else if (is_pipe(tokens[i]))
+		{
+			if (!tokens[i + 1] || is_pipe(tokens[i + 1]))
+			{
+				ft_putstr_fd("minishell: syntax error near unexpected token `", 2);
+				if (!tokens[i + 1])
+					ft_putstr_fd("newline", 2);
+				else
+					ft_putstr_fd(tokens[i + 1], 2);
+				ft_putstr_fd("'\n", 2);
+				return (1);
+			}
+		}
+		i++;
+	}
+
+	if (i > 0 && is_pipe(tokens[i - 1]))
+	{
+		ft_putstr_fd("minishell: syntax error near unexpected token `|'\n", 2);
+		return (1);
+	}
+	return (0);
+}
 
 void strip_quotes_from_ast(t_tree *ast)
 {
