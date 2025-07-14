@@ -6,11 +6,58 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/12 20:20:52 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/14 16:11:14 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+char	*get_pid_str(void)
+{
+	pid_t	pid;
+	char	*pid_str;
+
+	pid = getpid();
+	pid_str = ft_itoa(pid);
+	return (pid_str);
+}
+
+char	*expand_dollars(const char *str)
+{
+	char	*result;
+	char	*pid;
+	int		i = 0, ri = 0;
+	size_t	len = ft_strlen(str);
+
+	result = malloc(len * 20 + 1);
+	if (!result)
+		return (NULL);
+	pid = get_pid_str();
+	while (str[i])
+	{
+		if (str[i] == '$')
+		{
+			int dollar_count = 0;
+			while (str[i + dollar_count] == '$')
+				dollar_count++;
+			int pairs = dollar_count / 2;
+			int rest = dollar_count % 2;
+			while (pairs--)
+			{
+				ft_strlcpy(result + ri, pid, ft_strlen(pid) + 1);
+				ri += ft_strlen(pid);
+			}
+			if (rest)
+				result[ri++] = '$';
+			i += dollar_count;
+		}
+		else
+			result[ri++] = str[i++];
+	}
+	result[ri] = '\0';
+	free(pid);
+	return (result);
+}
 
 int	check_for_dollar(char *str)
 {
@@ -147,6 +194,7 @@ char *expand_string(char *str, char **env, int status, int heredoc)
     int     real_status;
     int     in_single_quote;
     int     in_double_quote;
+    int     dollars_flag = 0;
 
     if (!str)
         return (NULL);
@@ -200,7 +248,17 @@ char *expand_string(char *str, char **env, int status, int heredoc)
         // For normal: only expand if not in single quotes
         if (str[i] == '$' && (heredoc == 1 || !in_single_quote))
         {
+            // dollars_flag++;
             // Handle $? - exit status
+            if (str[i] == '$' && str[--i] != '$' && str[++i] == '\'')
+            {
+                ++i;
+                result = ft_strdup(&str[i]);
+                ++i;
+                while (str[i] !='\'')
+                    i++;
+                continue;
+            }
             if (str[i + 1] == '?')
             {
                 if (WIFEXITED(status))
@@ -216,14 +274,9 @@ char *expand_string(char *str, char **env, int status, int heredoc)
                 continue;
             }
             // Handle $$ - process ID
-            if (str[i + 1] == '$')
+            if (str[i + 1] == '$' )
             {
-                char *pid_str;
-                pid_str = ft_itoa(getpid());
-                tmp = ft_strjoin(result, pid_str);
-                free(result);
-                result = tmp;
-                i += 2;
+                str = expand_dollars(str);
                 continue;
             }
             // Handle ${VAR}

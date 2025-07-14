@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "minishell.h": "c",
-        "format": "c"
+        "format": "c",
+        "chrono": "c",
+        "functional": "c"
     }
 }
