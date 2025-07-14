@@ -487,8 +487,10 @@ int indetical_variable(char ***env, char *var)
 int is_in_exported(char *var, char **exported) {
     int i = 0;
     int len = 0;
-    while (var[len] && var[len] != '=')
+    while (var[len] && var[len] != '=' && var[len] != '+')
         len++;
+    if (var[len] == '+' && var[len + 1] == '=')
+        return (-2);
     while (exported && exported[i]) {
         if (!ft_strncmp(exported[i], var, len) &&
             (exported[i][len] == '\0' || exported[i][len] == '=')) {
@@ -508,7 +510,46 @@ void add_or_update_exported(char *var, char ***exported) {
     if (idx >= 0) {
         free((*exported)[idx]);
         (*exported)[idx] = ft_strdup(var);
-    } else {
+    }
+    else if (idx == -2)
+    {
+        // Find the variable name length (before +=)
+        int var_name_len = 0;
+        while (var[var_name_len] && var[var_name_len] != '+')
+            var_name_len++;
+        
+        // Look for existing variable
+        for (i = 0; i < len; i++)
+        {
+            if (!ft_strncmp((*exported)[i], var, var_name_len) && 
+                ((*exported)[i][var_name_len] == '=' || (*exported)[i][var_name_len] == '\0'))
+            {
+                // Variable exists, append value
+                char *old_var = (*exported)[i];
+                char *append_value = var + var_name_len + 2; // Skip "+="
+                (*exported)[i] = ft_strjoin(old_var, append_value);
+                free(old_var);
+                return;
+            }
+        }
+        // Variable doesn't exist, create it with just the append value
+        char *var_name = ft_substr(var, 0, var_name_len);
+        char *temp = ft_strjoin(var_name, "=");
+        char *new_var = ft_strjoin(temp, var + var_name_len + 2);
+        free(var_name);
+        free(temp);
+        
+        char **new_exported = malloc(sizeof(char*) * (len + 2));
+        for (i = 0; i < len; i++)
+            new_exported[i] = (*exported)[i];
+        new_exported[len] = new_var;
+        new_exported[len+1] = NULL;
+        if (*exported)
+            free(*exported);
+        *exported = new_exported;
+    }
+    else
+    {
         char **new_exported = malloc(sizeof(char*) * (len + 2));
         for (i = 0; i < len; i++)
             new_exported[i] = (*exported)[i];
@@ -527,6 +568,51 @@ void add_or_update_env(char *var, char ***env) {
     int i = 0, len = 0;
     while (*env && (*env)[len])
         len++;
+    
+    // Check for += operation - find += manually
+    int var_name_len = 0;
+    int is_append = 0;
+    while (var[var_name_len]) {
+        if (var[var_name_len] == '+' && var[var_name_len + 1] == '=') {
+            is_append = 1;
+            break;
+        }
+        if (var[var_name_len] == '=')
+            break;
+        var_name_len++;
+    }
+    
+    if (is_append) {
+        char *append_value = var + var_name_len + 2; // Skip "+="
+        
+        // Look for existing variable
+        for (i = 0; i < len; i++) {
+            if (!ft_strncmp((*env)[i], var, var_name_len) && (*env)[i][var_name_len] == '=') {
+                char *old_var = (*env)[i];
+                (*env)[i] = ft_strjoin(old_var, append_value);
+                free(old_var);
+                return;
+            }
+        }
+        // Variable doesn't exist, create it with just the append value
+        char *var_name = ft_substr(var, 0, var_name_len);
+        char *temp = ft_strjoin(var_name, "=");
+        char *new_var = ft_strjoin(temp, append_value);
+        free(var_name);
+        free(temp);
+        
+        char **new_env = malloc(sizeof(char*) * (len + 2));
+        for (i = 0; i < len; i++)
+            new_env[i] = (*env)[i];
+        new_env[len] = new_var;
+        new_env[len+1] = NULL;
+        if (*env)
+            free(*env);
+        *env = new_env;
+        return;
+    }
+    
+    // Regular assignment
     int eqpos = 0;
     while (var[eqpos] && var[eqpos] != '=')
         eqpos++;
