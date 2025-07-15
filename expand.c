@@ -6,11 +6,30 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/15 10:14:49 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/15 14:45:34 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+char    *get_before_dollar(char *str, int dollar_index)
+{
+    int i;
+    int len;
+    char    *res;
+    
+    i = 0;
+    res = malloc(sizeof(char) * dollar_index);
+    if (!res || !dollar_index)
+        return(NULL);
+    while(i <= dollar_index)
+    {
+        res[i] = str[i];
+        i++;
+    }
+    res[dollar_index] = '\0';
+    return (res);
+}
 
 char	*get_pid_str(void)
 {
@@ -256,16 +275,54 @@ char *expand_string(char *str, char **env, int status, int heredoc)
                 str = expand_dollars(str);
                 continue;
             }
-            // if (str[i] == '$' && (str[++i] == '\'' || str[++i] == '\"'))
-            // {
-            //     printf("str[%d] == %c\n", i, str[i]);
-            //     // ++i;
-            //     result = ft_strdup(&str[i]);
-            //     // ++i;
-            //     while (str[i] !='\'' || str[i] != '\"' || str[i])
-            //         i++;
-            //     continue;
-            // }
+            // Replace the problematic section with this:
+            if (str[i + 1] == '\'' || str[i + 1] == '"')
+            {
+                char quote_char = str[i + 1];
+                int j = i + 2; // Start after 
+                
+                // Find the closing quote
+                while (str[j] && str[j] != quote_char)
+                    j++;
+                
+                if (str[j] == quote_char) // Found closing quote
+                {
+                    // Extract the entire quoted section including quotes: content' or $"content"
+                    int total_len = j - i + 1; // from $ to closing quote
+                    char *quoted_section = ft_substr(str, i + 1, total_len - 1); // Skip the $, keep quotes
+                    
+                    if (quote_char == '\'') 
+                    {
+                        // For ...', keep quotes and treat content as literal
+                        tmp = ft_strjoin(result, quoted_section);
+                        free(result);
+                        result = tmp;
+                    }
+                    else // quote_char == '"'
+                    {
+                        // For $"...", keep quotes but expand variables inside
+                        char *expanded_section = expand_string(quoted_section, env, status, 0);
+                        tmp = ft_strjoin(result, expanded_section);
+                        free(result);
+                        result = tmp;
+                        free(expanded_section);
+                    }
+                    
+                    free(quoted_section);
+                    i = j + 1; // Move past the closing quote
+                    continue;
+                }
+                else
+                {
+                    // No closing quote found, treat as literal $ + quote
+                    char curr[2] = {'$', '\0'};
+                    tmp = ft_strjoin(result, curr);
+                    free(result);
+                    result = tmp;
+                    i++;
+                    continue;
+                }
+            }
             if (str[i + 1] == '?')
             {
                 if (WIFEXITED(status))

@@ -300,7 +300,13 @@ char *remove_quotes_from_string(char *str)
     
     while (str[i])
     {
-        if (!current_quote && (str[i] == '\'' || str[i] == '"'))
+        if ((str[i] == '\'' || str[i] == '\"') && (str[i + 1] == '\'' || str[i + 1] == '\"'))
+        {
+            result[j++] = '\'';
+            result[j++] = '\'';
+            i += 2;
+        }
+        else if (!current_quote && (str[i] == '\'' || str[i] == '"'))
         {
             current_quote = str[i];
             i++;
