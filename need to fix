@@ -1,0 +1,19 @@
+fix this :
+
+export a="f1 f2 f3"
+touch $a
+ls > a
+
+
+-----------------------\
+$''
+$""
+$$$
+$$$$$
+$'Sdasdasds'
+
+-------------------------
+
+fix heredoc dont expand delimiter
+
+-----------------------

@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/14 16:11:14 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/15 10:14:49 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -250,15 +250,22 @@ char *expand_string(char *str, char **env, int status, int heredoc)
         {
             // dollars_flag++;
             // Handle $? - exit status
-            if (str[i] == '$' && str[--i] != '$' && str[++i] == '\'')
+            // Handle $$ - process ID
+            if (str[i + 1] == '$' )
             {
-                ++i;
-                result = ft_strdup(&str[i]);
-                ++i;
-                while (str[i] !='\'')
-                    i++;
+                str = expand_dollars(str);
                 continue;
             }
+            // if (str[i] == '$' && (str[++i] == '\'' || str[++i] == '\"'))
+            // {
+            //     printf("str[%d] == %c\n", i, str[i]);
+            //     // ++i;
+            //     result = ft_strdup(&str[i]);
+            //     // ++i;
+            //     while (str[i] !='\'' || str[i] != '\"' || str[i])
+            //         i++;
+            //     continue;
+            // }
             if (str[i + 1] == '?')
             {
                 if (WIFEXITED(status))
@@ -271,12 +278,6 @@ char *expand_string(char *str, char **env, int status, int heredoc)
                 free(result);
                 result = tmp;
                 i += 2;
-                continue;
-            }
-            // Handle $$ - process ID
-            if (str[i + 1] == '$' )
-            {
-                str = expand_dollars(str);
                 continue;
             }
             // Handle ${VAR}

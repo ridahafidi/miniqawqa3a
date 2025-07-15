@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:39:56 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/12 20:16:15 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/15 09:54:56 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ int handle_heredoc(char *delimiter, char **env)
         }
         if (!ft_strcmp(line[0], tmp_delimiter[0])) // Check if delimiter is matched
             break;
-        if ((delimiter[0] == '\'' && delimiter[ft_strlen(delimiter) - 1] == '\'')  || (delimiter[0] == '\"' && delimiter[ft_strlen(delimiter) - 1] == '\"'))
+        if (ft_strchr(delimiter, '\'') || ft_strchr(delimiter, '\"'))
         {
             write(pipefd[1], line[0], ft_strlen(line[0])); // Write to pipe
             write(pipefd[1], "\n", 1);
