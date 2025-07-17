@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:39:56 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/15 09:54:56 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/17 16:29:51 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ int handle_heredoc(char *delimiter, char **env)
     tmp_delimiter[0] = ft_strdup(delimiter);
     tmp_delimiter[1] = NULL;
     // strip_quotes_from_tokens(tmp_delimiter, 0);
-    tmp_delimiter[0] = remove_quotes_from_string(delimiter);
+    tmp_delimiter[0] = remove_quotes_from_string(delimiter, 1);
     // printf("%s\n", delimiter);
     while (1)
     {
@@ -112,7 +112,6 @@ t_tree *handle_redirections(t_tree *root, int *in, int *out, char **env)
 {
     if (!root)
         return NULL;
-    
     // If this is a command node, return it directly
     if (root->type == COMMAND)
         return root;
@@ -123,6 +122,12 @@ t_tree *handle_redirections(t_tree *root, int *in, int *out, char **env)
     {
         // First, recursively process the left subtree to find more redirections
         t_tree *cmd = handle_redirections(root->left, in, out, env);
+        if (root->file_name && !root->file_name[0])
+        {
+            ft_putstr_fd("minishell : ambigious redirection\n", 2);
+            exit_status = 1;
+            return (NULL);
+        }
         if (!cmd && exit_status == 1)
             return NULL;
         // Then handle this redirection

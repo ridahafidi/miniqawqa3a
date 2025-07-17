@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 17:21:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/14 16:25:50 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/17 16:37:03 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -744,6 +744,8 @@ int    ft_exit(char **argv)
 
     i = 0;
     //check if numeric
+    if (!argv[1])
+        exit (exit_status);
     while (argv[1][i])
     {
         if ((argv[1][i] < '0' || argv[1][i] > '9') && argv[1][i] != '+' && argv[1][i] != '-')

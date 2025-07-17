@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/18 16:21:08 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/12 20:16:09 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/17 15:49:25 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,22 +34,21 @@ t_tree	*create_redirections(char *operator, char * file_name)
 	if (ft_strcmp(operator, "<") == 0)
 	{
 		redir->type = LESS;
-		redir->file_name = ft_strdup(remove_quotes_from_string(file_name));
+		redir->file_name = ft_strdup(remove_quotes_from_string(file_name, 1));
 	}
 	else if (ft_strcmp(operator, ">") == 0)
 	{
 		redir->type = GREATER;
-		redir->file_name = ft_strdup(remove_quotes_from_string(file_name));
+		redir->file_name = ft_strdup(remove_quotes_from_string(file_name, 1));
 	}
 	else if (ft_strcmp(operator, ">>") == 0)
 	{
 		redir->type = APPEND;
-		redir->file_name = ft_strdup(remove_quotes_from_string(file_name));
+		redir->file_name = ft_strdup(remove_quotes_from_string(file_name, 1));
 	}
 	else if (ft_strcmp(operator, "<<") == 0)
 	{
 		redir->type = HEREDOC;
-		// printf("%s\n", file_name);
 		redir->file_name = ft_strdup(file_name);
 	}
 	return (redir);

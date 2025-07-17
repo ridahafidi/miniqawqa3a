@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:20:39 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/05/19 19:36:21 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/17 17:13:23 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,5 +19,7 @@ void    free_tree(t_tree **root)
     free_tree(&(*root)->left);
     free_tree(&(*root)->right);
     free((*root)->command);
+    if ((*root)->file_name)
+        free((*root)->file_name);
     free((*root));
 }

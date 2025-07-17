@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/15 14:45:34 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/17 13:27:01 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,7 +213,6 @@ char *expand_string(char *str, char **env, int status, int heredoc)
     int     real_status;
     int     in_single_quote;
     int     in_double_quote;
-    int     dollars_flag = 0;
 
     if (!str)
         return (NULL);
@@ -261,15 +260,11 @@ char *expand_string(char *str, char **env, int status, int heredoc)
             i++;
             continue;
         }
-        
         // Handle variable expansion
         // For heredoc: expand everything (ignore quotes)
         // For normal: only expand if not in single quotes
         if (str[i] == '$' && (heredoc == 1 || !in_single_quote))
         {
-            // dollars_flag++;
-            // Handle $? - exit status
-            // Handle $$ - process ID
             if (str[i + 1] == '$' )
             {
                 str = expand_dollars(str);

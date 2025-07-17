@@ -3,6 +3,7 @@
         "minishell.h": "c",
         "format": "c",
         "chrono": "c",
-        "functional": "c"
+        "functional": "c",
+        "numbers": "c"
     }
 }

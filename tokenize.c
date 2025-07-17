@@ -17,13 +17,14 @@
 
 int is_complete_quoted_token(char *token)
 {
-    if (!token || strlen(token) < 2)
-        return (0);
-    
-    char first = token[0];
-    char last = token[strlen(token) - 1];
-    
-    return ((first == '\'' || first == '"') && first == last);
+   int  i = 0;
+   while (token[i])
+   {
+        if (token[i] != '\'' && token[i] != '\"')
+            return (0);
+        i++;
+   }
+   return (1);
 }
 
 int is_operator_char(char c)
@@ -172,6 +173,7 @@ char **initial_tokenization_with_env(char *input, char **env, int exit_status)
     int token_count = 0;
     int i = 0;
     int start;
+    int is_delimiter = 0;
     char quote = 0;
     int  quote_type = -1;
     
@@ -228,8 +230,12 @@ char **initial_tokenization_with_env(char *input, char **env, int exit_status)
         tokens[token_count][len] = '\0';
         // Expand variables if needed
                 // printf("token == %s\n", tokens[token_count]);
-
-        tokens[token_count] = expand_string(tokens[token_count], env, exit_status, 0);
+        if (!ft_strcmp(tokens[token_count], "<<"))
+            is_delimiter = 1;
+        else if (is_delimiter)
+            is_delimiter = 0;
+        else
+            tokens[token_count] = expand_string(tokens[token_count], env, exit_status, 0);
         // printf("token == %s\n", tokens[token_count]);
         token_count++;
     }
@@ -279,7 +285,7 @@ char **initial_tokenization(char *input) {
     return NULL;
 }
 
-char *remove_quotes_from_string(char *str)
+char *remove_quotes_from_string(char *str, int index)
 {
     int i, j;
     char *result;
@@ -300,13 +306,13 @@ char *remove_quotes_from_string(char *str)
     
     while (str[i])
     {
-        if ((str[i] == '\'' || str[i] == '\"') && (str[i + 1] == '\'' || str[i + 1] == '\"'))
+        if (index == 0 && is_complete_quoted_token(str))
         {
             result[j++] = '\'';
             result[j++] = '\'';
-            i += 2;
+            break;
         }
-        else if (!current_quote && (str[i] == '\'' || str[i] == '"'))
+        if (!current_quote && (str[i] == '\'' || str[i] == '"'))
         {
             current_quote = str[i];
             i++;
@@ -325,32 +331,32 @@ char *remove_quotes_from_string(char *str)
     return result;
 }
 
-void strip_quotes_from_tokens(char **tokens, int skip_heredoc_delimiter)
-{
-    int i;
-    char *new_token;
+// void strip_quotes_from_tokens(char **tokens, int skip_heredoc_delimiter)
+// {
+//     int i;
+//     char *new_token;
     
-    if (!tokens)
-        return;
+//     if (!tokens)
+//         return;
     
-    i = 0;
-    while (tokens[i])
-    {
-        if (skip_heredoc_delimiter && i == 1)
-        {
-            i++;
-            continue;
-        }
+//     i = 0;
+//     while (tokens[i])
+//     {
+//         if (skip_heredoc_delimiter && i == 1)
+//         {
+//             i++;
+//             continue;
+//         }
         
-        new_token = remove_quotes_from_string(tokens[i]);
-        if (new_token)
-        {
-            free(tokens[i]);
-            tokens[i] = new_token;
-        }
-        i++;
-    }
-}
+//         new_token = remove_quotes_from_string(tokens[i], i);
+//         if (new_token)
+//         {
+//             free(tokens[i]);
+//             tokens[i] = new_token;
+//         }
+//         i++;
+//     }
+// }
 
 char	*merge_tokens(char **tokens, int start, int end)
 {
