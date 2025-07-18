@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 17:21:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/17 16:37:03 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/18 15:09:28 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -373,6 +373,8 @@ char    *copy_var(char **export, int i)
         len++;
     }
     variable_name = malloc(sizeof(char ) * len + 1);
+    if (!variable_name)
+        return (NULL);
     ft_strlcpy(variable_name, export[i], len + 1);
     return (variable_name);
 }
@@ -385,22 +387,25 @@ void    handle_quotes(char **export, int i, int j)
     char *tmp;
     
     value = ft_strdup(&export[i][j + 1]);
-    tmp = value;
+    // tmp = value;
     quote = "\"";
-    value = ft_strjoin(quote, value);
-    free(tmp);
-    tmp = value;
-    value = ft_strjoin(value, quote);
-    free(tmp);
+    tmp = ft_strjoin(quote, value);
+    free(value);
+    value = tmp;
+    tmp = ft_strjoin(value, quote);
+    free(value);
+    value = tmp;
     variable_name = copy_var(export, i);
     free(export[i]);
     export[i] = ft_strjoin(variable_name, value);
+    free(variable_name);
 }
 
 void    print_format(char **export)
 {
     int i;
     int j;
+    char    *tmp;
     char    *declare;
 
     i = 0;
@@ -408,7 +413,9 @@ void    print_format(char **export)
     declare = "declare -x ";
     while (export[i])
     {
-        export[i] = ft_strjoin(declare, export[i]);
+        tmp = ft_strjoin(declare, export[i]);
+        free(export[i]);
+        export[i] = tmp; 
         j = 0;
         while (export[i][j])
         {

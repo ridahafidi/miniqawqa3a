@@ -235,7 +235,18 @@ char **initial_tokenization_with_env(char *input, char **env, int exit_status)
         else if (is_delimiter)
             is_delimiter = 0;
         else
-            tokens[token_count] = expand_string(tokens[token_count], env, exit_status, 0);
+        {
+            char *original_token = tokens[token_count];
+            char *expanded_token = expand_string(original_token, env, exit_status, 0);
+            
+            // If expand_string returned a different pointer, free the original
+            if (expanded_token != original_token)
+            {
+                free(original_token);
+                tokens[token_count] = expanded_token;
+            }
+        }
+            // tokens[token_count] = expand_string(tokens[token_count], env, exit_status, 0);
         // printf("token == %s\n", tokens[token_count]);
         token_count++;
     }
@@ -328,6 +339,7 @@ char *remove_quotes_from_string(char *str, int index)
         }
     }
     result[j] = '\0';
+    // printf("result === %s\n", result);
     return result;
 }
 
