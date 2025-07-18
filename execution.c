@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/17 16:47:45 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/18 22:44:02 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,9 +170,10 @@ void    execution(t_tree *root,t_fd *fd, char ***env, char ***exported)
     t_pid *pid;
     t_tree *cmd;
 
-    pid = malloc(sizeof(t_pid));
-    if (!pid)
-        return ;
+    // pid = malloc(sizeof(t_pid));
+    pid = 0;
+    // if (!pid)
+    //     return ;
     if (!root)
     {
         free(pid);
@@ -188,7 +189,7 @@ void    execution(t_tree *root,t_fd *fd, char ***env, char ***exported)
                 close(fd->in);
             if (fd->out != STDOUT_FILENO)
                 close(fd->out);
-            free(pid);
+            // free(pid);
             return;
         }
         // Execute the command with the redirections applied
@@ -201,7 +202,7 @@ void    execution(t_tree *root,t_fd *fd, char ***env, char ***exported)
             close(fd->in);
         if (fd->out != STDOUT_FILENO)
             close(fd->out);
-        free(pid);
+        // free(pid);
         return ;
     }
     else if (root->type == COMMAND)

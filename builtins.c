@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 17:21:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/18 15:09:28 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/18 22:48:50 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -399,6 +399,7 @@ void    handle_quotes(char **export, int i, int j)
     free(export[i]);
     export[i] = ft_strjoin(variable_name, value);
     free(variable_name);
+    free(value);
 }
 
 void    print_format(char **export)
@@ -677,6 +678,12 @@ int ft_export(char **argv, char ***env, char ***exported) {
         while (copy[i]) {
             ft_putstr_fd(copy[i], STDOUT_FILENO);
             ft_putstr_fd("\n", STDOUT_FILENO);
+            i++;
+        }
+        i = 0;
+        while(copy[i])
+        {
+            free(copy[i]);
             i++;
         }
         free(copy);

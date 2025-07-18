@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/18 14:52:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/17 18:06:03 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/18 21:55:06 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ void strip_quotes_from_ast(t_tree *ast)
             {
                 free(ast->command[i]);
                 ast->command[i] = new_str;
-            }
+			}
             i++;
         }
     }

@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:17:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/06 19:48:18 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/18 22:51:51 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ char    *get_path(char *cmd, char **env)
 	int		i;
 
 	i = 0;
+    if(env)
 	path = get_env_path(env);
 	if (!path)
 		return (NULL);

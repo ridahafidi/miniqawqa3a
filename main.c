@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:27:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/17 16:57:08 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/18 22:37:58 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ int process_cmd(char *input, char ***env, char ***exported)
     {
         free_array(tokens);
         exit_status = initialize(ast, fds, env, exported);
+        // printf("zaba wlfada wchad \n");
         free_tree(&ast);
     }
     else if (tokens)
@@ -105,6 +106,7 @@ void    update_shlvl(char ***env)
     char    *new_shlvl;
     char    *val;
     int new_val;
+    char    *tmp;
 
     i = 0;
     j = 0;
@@ -121,6 +123,8 @@ void    update_shlvl(char ***env)
             free(val);
             free(env[0][i]);
             env[0][i] = new_shlvl;
+            if (new_shlvl)
+                free(new_shlvl);
             return ;
         }
         i++;

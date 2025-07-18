@@ -271,12 +271,13 @@ char **tokenize_input(char *input, char **env, int exit_status)
     if (!spaced_input)
         return NULL;
     tokens = initial_tokenization_with_env(spaced_input, env, exit_status);
+    free(spaced_input);
     if (check_syntax_errors(tokens))
     {
         exit_status = 2;
         return NULL;
     }
-    free(spaced_input);
+    // free(spaced_input);
     if (!tokens)
         return NULL;
     // Check for pipe errors
@@ -339,6 +340,11 @@ char *remove_quotes_from_string(char *str, int index)
         }
     }
     result[j] = '\0';
+    if (!result[0])
+    {
+        free(result);
+        return (NULL);
+    }
     // printf("result === %s\n", result);
     return result;
 }
