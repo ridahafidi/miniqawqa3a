@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/19 21:35:57 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/19 23:38:30 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,10 @@ void    forker(t_tree *root, t_fd *fd, char ***env, char ***exported)
         if (fd->in == -1 || fd->out == -1)
         {
             // free(fd);
+            free_array(*env);
+            free_array(*exported);
+            clear_history();
+            free_tree(&root);
             exit(EXIT_FAILURE);
         }
         // free(fd);
@@ -110,6 +114,7 @@ void    forker(t_tree *root, t_fd *fd, char ***env, char ***exported)
         // Restore shell signal handlers
         signal(SIGINT, sigint_handler);
         signal(SIGQUIT, SIG_IGN);
+                    // free_tree(&root);
     }
 }
 
@@ -157,6 +162,10 @@ void handle_pipe( t_fd *fd, char ***env, char ***exported, t_tree *root)
         close(pfd[0]);
         fd->out = pfd[1];
         execution(root->left, fd, env, exported);
+        free_array(*exported);
+        free_array(*env);
+        clear_history();
+        free_tree(&root);
         free_exit(pid, fd);
     }
     pid->right_pid = fork();
@@ -168,8 +177,17 @@ void handle_pipe( t_fd *fd, char ***env, char ***exported, t_tree *root)
         close(pfd[1]);
         fd->in = pfd[0];
         execution(root->right, fd, env, exported);
+        free_array(*exported);
+        free_array(*env);
+        clear_history();
+        free_tree(&root);
         free_exit(pid, fd);
     }
+    // free_array(*exported);
+    // free_array(*env);
+    // clear_history();
+    // free_tree(&root);
+    // free(pid);
     close_wait(pfd, pid, fd);
 }
 
