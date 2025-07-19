@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:39:56 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/17 16:29:51 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/19 14:26:36 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ int handle_heredoc(char *delimiter, char **env)
     int pipefd[2];
     char    *line[2];
     char    *tmp_delimiter[2];
+    char    *tmp;
     char    **expanded;
     int     i;
 
@@ -27,10 +28,13 @@ int handle_heredoc(char *delimiter, char **env)
     }
 
     signal(SIGINT, heredoc_sigint_handler); // Handle SIGINT during heredoc
-    tmp_delimiter[0] = ft_strdup(delimiter);
+    // tmp_delimiter[0] = ft_strdup(delimiter);
     tmp_delimiter[1] = NULL;
     // strip_quotes_from_tokens(tmp_delimiter, 0);
+    // tmp = remove_quotes_from_string(delimiter, 1);
+    // free(tmp_delimiter)
     tmp_delimiter[0] = remove_quotes_from_string(delimiter, 1);
+    // exit (1);
     // printf("%s\n", delimiter);
     while (1)
     {
@@ -39,6 +43,7 @@ int handle_heredoc(char *delimiter, char **env)
         if (!line[0]) // Handle EOF (Ctrl+D)
         {
             write(STDOUT_FILENO, "\n", 1);
+            // free(line[0]);
             break;
         }
         if (!ft_strcmp(line[0], tmp_delimiter[0])) // Check if delimiter is matched
@@ -55,9 +60,12 @@ int handle_heredoc(char *delimiter, char **env)
             write(pipefd[1], "\n", 1);
             free_array(expanded);
         }
+        free(line[0]);
     }
+    free(line[0]);
     close(pipefd[1]); // Close write end of the pipe
     signal(SIGINT, sigint_handler); // Restore default SIGINT handler
+    free(tmp_delimiter[0]);
     return pipefd[0]; // Return read end of the pipe
 }
 
@@ -126,6 +134,7 @@ t_tree *handle_redirections(t_tree *root, int *in, int *out, char **env)
         {
             ft_putstr_fd("minishell : ambigious redirection\n", 2);
             exit_status = 1;
+            // free(root->file_name);
             return (NULL);
         }
         if (!cmd && exit_status == 1)

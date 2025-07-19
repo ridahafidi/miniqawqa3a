@@ -1,5 +1,4 @@
 $
-a.out
 build_tree.c
 builtins.c
 exec_utils.c
@@ -7,6 +6,7 @@ execution.c
 expand.c
 file.sup
 free_tree.c
+g
 insert_spaces.c
 leak_tests.sh
 libft

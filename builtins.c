@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 17:21:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/18 22:48:50 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/19 21:48:06 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,16 +169,24 @@ int ft_cd(char **argv, char ***env)
     struct stat file_stat;
     char    cwd[4096];
     char    new_cwd[4096];
-    
-    if (argv[2])
+    int     arg_count;
+
+    // Count arguments safely
+    arg_count = 0;
+    while (argv[arg_count])
+        arg_count++;
+
+    if (arg_count > 2)
     {
         ft_putstr_fd("minishell: cd: too many arguments\n", 2);
         return (EXIT_FAILURE);
     }
-    if (argv[1])
+
+    if (arg_count == 2)
         path = argv[1]; 
     else
         path = NULL;
+
     if (getcwd(cwd, sizeof(cwd)) == NULL)
     {
         perror("getcwd failed");
@@ -751,15 +759,24 @@ int ft_unset(char **argv, char ***env, char ***exported) {
     return (EXIT_SUCCESS);
 }
 
-int    ft_exit(char **argv)
+int    ft_exit(t_tree *root, char **env, char **exported, t_fd *fd)
 {
     int i;
     int exit_code;
-
+    char **argv;
+    
+    argv = root->command;
     i = 0;
+    clear_history();
     //check if numeric
     if (!argv[1])
+    {
+        free_tree(&root);
+        free(fd);
+        free_array(env);
+        free_array(exported);
         exit (exit_status);
+    }
     while (argv[1][i])
     {
         if ((argv[1][i] < '0' || argv[1][i] > '9') && argv[1][i] != '+' && argv[1][i] != '-')
@@ -768,6 +785,10 @@ int    ft_exit(char **argv)
                 ft_putstr_fd("minishell: exit: ", STDERR_FILENO);
                 ft_putstr_fd(argv[1], STDERR_FILENO);
                 ft_putstr_fd(": numeric argument required\n", STDERR_FILENO);
+                free_tree(&root);
+                free(fd);
+                free_array(env);
+                free_array(exported);
                 exit(2);
             }
         i++;
@@ -776,16 +797,23 @@ int    ft_exit(char **argv)
     {
         ft_putstr_fd("exit\n", STDERR_FILENO);
         ft_putstr_fd("minishell: exit: too many arguments\n", STDERR_FILENO);
+        // if (root)
+        //     free_tree(&root);
+        // free(fd);
         return (EXIT_FAILURE);
     }
     if (argv[1])
         exit_code = ft_atoi(argv[1]);
     else
         exit_code = 0;
+    free_tree(&root);
+    free(fd);
+    free_array(env);
+    free_array(exported);
     exit (exit_code & 0xFF);
 }
 
-int handle_builtins(t_tree *root, int in, int out, char ***env, char ***exported, int status)
+int handle_builtins(t_tree *root, t_fd *fd, char ***env, char ***exported, int status)
 {
     int exit_code;
 
@@ -803,6 +831,6 @@ int handle_builtins(t_tree *root, int in, int out, char ***env, char ***exported
     else if (!ft_strcmp(root->command[0], "env"))
         exit_code = ft_env(root->command, env[0]);
     else if (!ft_strcmp(root->command[0], "exit"))
-        exit_code = ft_exit(root->command);
+        exit_code = ft_exit(root, *env, *exported, fd);
     return (exit_code);
 }

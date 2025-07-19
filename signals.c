@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/16 18:59:57 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/03 19:08:46 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/19 21:27:23 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ void	ctrl_d_handle(int sig)
 {
 	(void)sig;
 	printf("exit\n");
+	clear_history();
 	exit(EXIT_SUCCESS);
 }
 
@@ -44,5 +45,6 @@ void	child_sigint_handler(int sig)
 {
 	(void)sig;
 	write(STDOUT_FILENO, "\n", 1);
+	// clear_history();
 	exit(EXIT_SIGINT_CODE);  // 130 for Ctrl-C
 }

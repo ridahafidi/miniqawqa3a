@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/17 13:27:01 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/19 16:26:51 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ char	*get_pid_str(void)
 	return (pid_str);
 }
 
-char	*expand_dollars(const char *str)
+char	*expand_dollars(char *str)
 {
 	char	*result;
 	char	*pid;
@@ -75,6 +75,8 @@ char	*expand_dollars(const char *str)
 	}
 	result[ri] = '\0';
 	free(pid);
+    // if (str)
+    //     free(str);
 	return (result);
 }
 
@@ -213,6 +215,7 @@ char *expand_string(char *str, char **env, int status, int heredoc)
     int     real_status;
     int     in_single_quote;
     int     in_double_quote;
+    int     doll = 0;
 
     if (!str)
         return (NULL);
@@ -267,7 +270,11 @@ char *expand_string(char *str, char **env, int status, int heredoc)
         {
             if (str[i + 1] == '$' )
             {
+                // printf("str == %s\n", str);
                 str = expand_dollars(str);
+                doll = 1;
+                // printf("str == %s\n", str);
+                // printf("res == %s\n", result);
                 continue;
             }
             // Replace the problematic section with this:
@@ -401,7 +408,10 @@ char *expand_string(char *str, char **env, int status, int heredoc)
             result = tmp;
             i++;
         }
+        // printf("res == %s\n", result);
     }
+    if (doll)
+        free(str);
     return result;
 }
 

@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/18 22:44:02 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/19 21:35:57 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ void    forker(t_tree *root, t_fd *fd, char ***env, char ***exported)
             close(saved_stdout);
             return ;
         }
-        exit_status = handle_builtins(root, fd->in, fd->out, env, exported, exit_status);
+        exit_status = handle_builtins(root, fd, env, exported, exit_status);
         dup2(saved_stdin, STDIN_FILENO);
         dup2(saved_stdout, STDOUT_FILENO);
         close(saved_stdin);
@@ -82,8 +82,12 @@ void    forker(t_tree *root, t_fd *fd, char ***env, char ***exported)
         signal(SIGQUIT, SIG_DFL);             // Reset SIGQUIT for child
         redirecting(fd->in, fd->out);
         if (fd->in == -1 || fd->out == -1)
+        {
+            // free(fd);
             exit(EXIT_FAILURE);
-        execute_command(root, fd->in, fd->out, *env);
+        }
+        // free(fd);
+        execute_command(root, fd, *env, *exported);
     }
     else
     {
@@ -120,6 +124,7 @@ void    pipein(int *pfd)
 
 void    close_wait(int *pfd, t_pid *pid, t_fd *fd)
 {
+    // printf("Here\n");
     close (pfd[0]);
     close (pfd[1]);
     waitpid(pid->left_pid, NULL, 0);
@@ -135,12 +140,16 @@ void free_exit (t_pid *pid, t_fd *fd)
     exit(exit_status);
 }
 
-void handle_pipe(t_pid *pid, t_fd *fd, char ***env, char ***exported, t_tree *root)
+void handle_pipe( t_fd *fd, char ***env, char ***exported, t_tree *root)
 {
     int pfd[2];
-    
+    t_pid *pid;
+
+    pid = malloc(sizeof(t_pid));
     pipein(pfd);
     pid->left_pid = fork();
+    // exit(1);
+    // printf("pid == %d\n", pid->left_pid);
     if (!pid->left_pid)
     {
         signal(SIGINT, SIG_DFL);
@@ -151,6 +160,7 @@ void handle_pipe(t_pid *pid, t_fd *fd, char ***env, char ***exported, t_tree *ro
         free_exit(pid, fd);
     }
     pid->right_pid = fork();
+    // printf("pid == %d\n", pid->right_pid);
     if (!pid->right_pid)
     {
         signal(SIGINT, SIG_DFL);
@@ -208,7 +218,7 @@ void    execution(t_tree *root,t_fd *fd, char ***env, char ***exported)
     else if (root->type == COMMAND)
         forker(root, fd, env, exported);
     else if (root->type == PIPE)
-        handle_pipe(pid , fd, env, exported, root);
+        handle_pipe( fd, env, exported, root);
 }
 
 int    initialize(t_tree *root, t_fd *fd, char ***env, char ***exported)

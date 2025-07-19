@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:17:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/18 22:51:51 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/19 21:25:36 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,6 @@ char    *get_path(char *cmd, char **env)
 	int		i;
 
 	i = 0;
-    if(env)
 	path = get_env_path(env);
 	if (!path)
 		return (NULL);
@@ -86,24 +85,29 @@ void    access_exec(char **argv, char **env)
     }
 }
 
-void    execute_command(t_tree *root, int in, int out, char **env)
+void    execute_command(t_tree *root, t_fd *fd, char **env, char **exported)
 {
     char *path;
-    (void)in;
-    (void)out;
-    
+    if(fd)
+        free(fd);
     int i = 0;
     // First check if it's an absolute or relative path
     while(root->command[i][0] == '\0')
     {
         i++;
         if (!root->command[i])
+        {
+            free_array(env);
+            free_array(exported);
             exit(EXIT_SUCCESS);
+        }
     }
     if (ft_strchr(root->command[i], '/') || root->command[i][0] == '.')
     {
         if (access(root->command[i], F_OK) == -1)
         {
+            free_array(env);
+            free_array(exported);
             ft_putstr_fd("minishell: ", STDERR_FILENO);
             ft_putstr_fd(root->command[i], STDERR_FILENO);
             ft_putstr_fd(": No such file or directory\n", STDERR_FILENO);
@@ -111,6 +115,8 @@ void    execute_command(t_tree *root, int in, int out, char **env)
         }
         if (access(root->command[i], X_OK) == -1)
         {
+            free_array(env);
+            free_array(exported);
             ft_putstr_fd("minishell: ", STDERR_FILENO);
             ft_putstr_fd(root->command[i], STDERR_FILENO);
             ft_putstr_fd(": Permission denied\n", STDERR_FILENO);
@@ -123,6 +129,10 @@ void    execute_command(t_tree *root, int in, int out, char **env)
         path = get_path(root->command[i], env);
         if (!path)
         {
+            free_array(env);
+            free_array(exported);
+            clear_history();
+            // free(root->command[i]);
             ft_putstr_fd("minishell: ", STDERR_FILENO);
             ft_putstr_fd(root->command[i], STDERR_FILENO);
             ft_putstr_fd(": command not found\n", STDERR_FILENO);
@@ -134,13 +144,21 @@ void    execute_command(t_tree *root, int in, int out, char **env)
     {
         if (errno == EACCES)
         {
+            free_array(env);
+            free_array(exported);
             ft_putstr_fd("minishell: ", STDERR_FILENO);
             ft_putstr_fd(root->command[i], STDERR_FILENO);
             ft_putstr_fd(": Permission denied\n", STDERR_FILENO);
             exit(126);  // Permission denied
         }
         if (errno == ENOENT)
+        {
+            free_array(env);
+            free_array(exported);
             exit(127);  // No such file or directory
+        }
+        free_array(env);
+        free_array(exported);
         exit(EXIT_FAILURE);     // Other execution errors
     }
 }

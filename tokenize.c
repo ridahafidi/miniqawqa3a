@@ -340,12 +340,13 @@ char *remove_quotes_from_string(char *str, int index)
         }
     }
     result[j] = '\0';
-    if (!result[0])
-    {
-        free(result);
-        return (NULL);
-    }
-    // printf("result === %s\n", result);
+    // if (!result[0])
+    // {
+    //     printf("result === %s\n", result);
+    //     free(result);
+    //     return (NULL);
+    // }
+    // printf("here\n");
     return result;
 }
 

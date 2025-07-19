@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/18 16:21:08 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/17 15:49:25 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/19 14:42:25 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,22 +29,29 @@ int	is_redirections(char *tokens)
 t_tree	*create_redirections(char *operator, char * file_name)
 {
 	t_tree	*redir;
-
+	char *tmp;
+	
 	redir = create_command();
 	if (ft_strcmp(operator, "<") == 0)
 	{
 		redir->type = LESS;
-		redir->file_name = ft_strdup(remove_quotes_from_string(file_name, 1));
+		tmp = remove_quotes_from_string(file_name, 1);
+		redir->file_name = ft_strdup(tmp);
+		free(tmp);
 	}
 	else if (ft_strcmp(operator, ">") == 0)
 	{
 		redir->type = GREATER;
-		redir->file_name = ft_strdup(remove_quotes_from_string(file_name, 1));
+		tmp = remove_quotes_from_string(file_name, 1);
+		redir->file_name = ft_strdup(tmp);
+		free(tmp);
 	}
 	else if (ft_strcmp(operator, ">>") == 0)
 	{
 		redir->type = APPEND;
-		redir->file_name = ft_strdup(remove_quotes_from_string(file_name, 1));
+		tmp = remove_quotes_from_string(file_name, 1);
+		redir->file_name = ft_strdup(tmp);
+		free(tmp);
 	}
 	else if (ft_strcmp(operator, "<<") == 0)
 	{

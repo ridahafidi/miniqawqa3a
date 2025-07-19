@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:27:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/18 22:37:58 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/19 21:08:32 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ int process_cmd(char *input, char ***env, char ***exported)
     if (ast)
     {
         free_array(tokens);
+        // printf("freeing\n");
         exit_status = initialize(ast, fds, env, exported);
         // printf("zaba wlfada wchad \n");
         free_tree(&ast);
@@ -59,8 +60,11 @@ void    shell_loop(char ***env, char ***exported)
     while (!exit)
     {
         input = readline("minishell> ");
-        if (input == NULL)
+        if (input == NULL) {
+            free_array(env[0]);
+            free_array(exported[0]);
             ctrl_d_handle(0);
+        }
         if (input[0] != '\0')
         {
             add_history(input);
@@ -123,8 +127,8 @@ void    update_shlvl(char ***env)
             free(val);
             free(env[0][i]);
             env[0][i] = new_shlvl;
-            if (new_shlvl)
-                free(new_shlvl);
+            // if (new_shlvl)
+            //     free(new_shlvl);
             return ;
         }
         i++;
