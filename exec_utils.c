@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:17:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/19 21:25:36 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/19 21:52:48 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,8 @@ void    execute_command(t_tree *root, t_fd *fd, char **env, char **exported)
         {
             free_array(env);
             free_array(exported);
+                                clear_history();
+
             exit(EXIT_SUCCESS);
         }
     }
@@ -111,6 +113,8 @@ void    execute_command(t_tree *root, t_fd *fd, char **env, char **exported)
             ft_putstr_fd("minishell: ", STDERR_FILENO);
             ft_putstr_fd(root->command[i], STDERR_FILENO);
             ft_putstr_fd(": No such file or directory\n", STDERR_FILENO);
+                        clear_history();
+
             exit(127);  // Command not found
         }
         if (access(root->command[i], X_OK) == -1)
@@ -120,6 +124,8 @@ void    execute_command(t_tree *root, t_fd *fd, char **env, char **exported)
             ft_putstr_fd("minishell: ", STDERR_FILENO);
             ft_putstr_fd(root->command[i], STDERR_FILENO);
             ft_putstr_fd(": Permission denied\n", STDERR_FILENO);
+                        clear_history();
+
             exit(126);  // Permission denied
         }
         path = root->command[i];
@@ -149,16 +155,22 @@ void    execute_command(t_tree *root, t_fd *fd, char **env, char **exported)
             ft_putstr_fd("minishell: ", STDERR_FILENO);
             ft_putstr_fd(root->command[i], STDERR_FILENO);
             ft_putstr_fd(": Permission denied\n", STDERR_FILENO);
+                        clear_history();
+
             exit(126);  // Permission denied
         }
         if (errno == ENOENT)
         {
             free_array(env);
             free_array(exported);
+                        clear_history();
+
             exit(127);  // No such file or directory
         }
         free_array(env);
         free_array(exported);
+                    clear_history();
+
         exit(EXIT_FAILURE);     // Other execution errors
     }
 }
