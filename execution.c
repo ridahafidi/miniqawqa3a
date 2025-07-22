@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/19 23:38:30 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/21 22:02:28 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,7 +166,9 @@ void handle_pipe( t_fd *fd, char ***env, char ***exported, t_tree *root)
         free_array(*env);
         clear_history();
         free_tree(&root);
+        // printf("freeeing\n");
         free_exit(pid, fd);
+
     }
     pid->right_pid = fork();
     // printf("pid == %d\n", pid->right_pid);
@@ -181,13 +183,20 @@ void handle_pipe( t_fd *fd, char ***env, char ***exported, t_tree *root)
         free_array(*env);
         clear_history();
         free_tree(&root);
+                    // printf("freeeing\n");
+
         free_exit(pid, fd);
+        
     }
-    // free_array(*exported);
-    // free_array(*env);
-    // clear_history();
-    // free_tree(&root);
-    // free(pid);
+    // else
+    // {
+    //     free_array(*exported);
+    //     free_array(*env);
+    //     clear_history();
+    //     free_tree(&root);
+    //     free(pid);
+        
+    // }
     close_wait(pfd, pid, fd);
 }
 
@@ -205,6 +214,7 @@ void    execution(t_tree *root,t_fd *fd, char ***env, char ***exported)
     if (!root)
     {
         free(pid);
+        // free_tree(&root);
         return ;
     }
     if (root->type == APPEND || root->type == GREATER || root->type == LESS || root->type == HEREDOC)
@@ -218,6 +228,7 @@ void    execution(t_tree *root,t_fd *fd, char ***env, char ***exported)
             if (fd->out != STDOUT_FILENO)
                 close(fd->out);
             // free(pid);
+            // free_tree(&root);
             return;
         }
         // Execute the command with the redirections applied

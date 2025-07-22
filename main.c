@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:27:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/19 23:03:24 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/21 22:01:13 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,4 +151,5 @@ int main(int ac, char **av, char **env)
     shell_loop(&my_env, &exported);
     free_array(my_env);
     free_array(exported);
+    printf("freeeing\n");
 }

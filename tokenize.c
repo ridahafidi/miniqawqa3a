@@ -217,7 +217,7 @@ char **initial_tokenization_with_env(char *input, char **env, int exit_status)
         // Extract token
         int len = i - start;
         tokens[token_count] = malloc(len + 1);
-        if (!tokens[token_count])
+        if (!tokens[token_count] || !tokens)
         {
             // Free previously allocated tokens
             for (int j = 0; j < token_count; j++)
