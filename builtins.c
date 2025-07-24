@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 17:21:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/24 16:43:02 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/24 18:10:20 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,6 +130,25 @@ int ft_echo(char **argv, char ***env, int status)
 }
 
 // cd
+
+char    *ft_getenv(char **env, const char *name)
+{
+    int     i;
+    size_t  len;
+
+    if (!env || !name)
+        return (NULL);
+    len = ft_strlen(name);
+    i = 0;
+    while (env[i])
+    {
+        if (!ft_strncmp(env[i], name, len) && env[i][len] == '=')
+            return (env[i] + len + 1); // return value after '='
+        i++;
+    }
+    return (NULL);
+}
+
 int check_dir_x(struct stat *file_stat, char *path)
 {
     if (stat(path, file_stat) == -1)
@@ -167,105 +186,181 @@ void    update_env(char ***env, char *new_cwd, char *cwd)
         i++;
     }
 }
+/*/cd boundries*/
 
-int ft_cd(char **argv, char ***env)
+static int	count_arguments(char **argv)
 {
-    char  *path;
-    char    **expanded;
-    struct stat file_stat;
-    char    cwd[4096];
-    char    new_cwd[4096];
-    int     arg_count;
+	int	arg_count;
 
-    // Count arguments safely
-    arg_count = 0;
-    while (argv[arg_count])
-        arg_count++;
+	arg_count = 0;
+	while (argv[arg_count])
+		arg_count++;
+	return (arg_count);
+}
 
-    if (arg_count > 2)
-    {
-        ft_putstr_fd("minishell: cd: too many arguments\n", 2);
-        return (EXIT_FAILURE);
-    }
+static int	change_to_home(char ***env, char *cwd)
+{
+	char			*path;
+	struct stat		file_stat;
 
-    if (arg_count == 2)
-        path = argv[1]; 
-    else
-        path = NULL;
+	path = ft_getenv(*env ,"HOME");
+	if (!path)
+	{
+		perror("getenv failed");
+		return (1);
+	}
+	if (check_dir_x(&file_stat, path))
+	{
+		if (chdir(path) == -1)
+		{
+			perror("chdir failed");
+			return (1);
+		}
+	}
+	else
+	{
+		perror("not dir or permession denied");
+		return (1);
+	}
+	return (0);
+}
 
-    if (getcwd(cwd, sizeof(cwd)) == NULL)
-    {
-        perror("getcwd failed");
-        return (1);
-    }
-    if (!path)
-    {
-        path = getenv("HOME");
-        if (!path)
-        {
-            perror("getenv failed");
-            return (1);
-        }
-        if (check_dir_x(&file_stat, path))
-        {    
-            if (chdir(path) == -1)
-            {
-                perror("chdir failed");
-                return (1);
-            }
-        }
-        else
-        {
-            perror("not dir or permession denied");
-            return(1);
-        }
-    }
-    else if (!ft_strcmp(path, "-"))
-    {
-        path = getenv("OLDPWD");
-        if (!path)
-        {
-            perror("getenv failed");
-            return (1);
-        }
-        if (check_dir_x(&file_stat, path))
-        {    
-            if (chdir(path) == -1)
-            {
-                perror("chdir failed");
-                return (1);
-            }
-        }
-        else
-        {
-            perror("not dir or permession denied");
-            return(1);
-        }
-    }
-    else
-    {
+static int	change_to_oldpwd(char ***env, char *cwd)
+{
+	char			*path;
+	struct stat		file_stat;
 
-        if (check_dir_x(&file_stat, path))
-        {
-            if (chdir(path) == -1)
-            {
-                perror("chdir failed");
-                return (1);
-            }
-        }
-        else
-        {
-            perror("not dir or permession denied");
-            return(1);
-        }
-    }
-    if (getcwd(new_cwd, sizeof(new_cwd)) == NULL)
+	path = ft_getenv(*env, "OLDPWD");
+	if (!path)
+	{
+		perror("getenv failed");
+		return (1);
+	}
+	if (check_dir_x(&file_stat, path))
+	{
+		if (chdir(path) == -1)
+		{
+			perror("chdir failed");
+			return (1);
+		}
+		ft_putstr_fd(path, STDOUT_FILENO);
+		ft_putstr_fd("\n", STDOUT_FILENO);
+	}
+	else
+	{
+		perror("not dir or permession denied");
+		return (1);
+	}
+	return (0);
+}
+
+static int	change_to_path(char *path)
+{
+	struct stat	file_stat;
+
+	if (check_dir_x(&file_stat, path))
+	{
+		if (chdir(path) == -1)
+		{
+			perror("chdir failed");
+			return (1);
+		}
+	}
+	else
+	{
+		perror("not dir or permession denied");
+		return (1);
+	}
+	return (0);
+}
+
+static int	handle_directory_change(char *path, char ***env, char *cwd)
+{
+	if (!path)
+		return (change_to_home(env, cwd));
+	else if (!ft_strcmp(path, "-"))
+		return (change_to_oldpwd(env, cwd));
+	else
+		return (change_to_path(path));
+}
+
+static int	validate_and_get_path(char **argv, char **path)
+{
+	int	arg_count;
+
+	arg_count = count_arguments(argv);
+	if (arg_count > 2)
+	{
+		ft_putstr_fd("minishell: cd: too many arguments\n", 2);
+		return (EXIT_FAILURE);
+	}
+	if (arg_count == 2)
+		*path = argv[1];
+	else
+		*path = NULL;
+	return (0);
+}
+
+static char *get_current_pwd_from_env(int *should_free, char ***env)
+{
+    char *current_pwd;
+    char *tmp;
+
+    tmp = ft_getenv(*env, "PWD");
+    *should_free = 0;
+    if (tmp)
     {
-        perror("getcwd failed");
-        return (1);
+        current_pwd = ft_strdup(tmp); // duplicate because update_env() will free PWD
+        if (!current_pwd)
+            return (NULL);
+        *should_free = 1;
+        return (current_pwd);
     }
-    update_env(env, new_cwd, cwd);
-    return (0);
+    current_pwd = malloc(4096);
+    *should_free = 1;
+    if (!current_pwd || getcwd(current_pwd, 4096) == NULL)
+    {
+        if (current_pwd)
+            free(current_pwd);
+        return (NULL);
+    }
+    return (current_pwd);
+}
+
+static int	handle_cd_operation(char *path, char ***env, char *current_pwd)
+{
+	char	new_cwd[4096];
+
+	if (handle_directory_change(path, env, current_pwd) != 0)
+		return (1);
+	if (getcwd(new_cwd, sizeof(new_cwd)) == NULL)
+	{
+		perror("getcwd failed");
+		return (1);
+	}
+	update_env(env, new_cwd, current_pwd);
+	return (0);
+}
+
+int	ft_cd(char **argv, char ***env)
+{
+	char	*path;
+	char	*current_pwd;
+	int		should_free_pwd;
+	int		result;
+
+	if (validate_and_get_path(argv, &path) != 0)
+		return (EXIT_FAILURE);
+	current_pwd = get_current_pwd_from_env(&should_free_pwd, env);
+	if (!current_pwd)
+	{
+		perror("getcwd failed");
+		return (1);
+	}
+	result = handle_cd_operation(path, env, current_pwd);
+	if (should_free_pwd)
+		free(current_pwd);
+	return (result);
 }
 //start pwd implemetation:
 
@@ -506,207 +601,343 @@ int indetical_variable(char ***env, char *var)
 }
 
 // Helper: check if var is in exported//////////////////////////////////////////////////////////////////
-int is_in_exported(char *var, char **exported) {
-    int i = 0;
-    int len = 0;
-    while (var[len] && var[len] != '=' && var[len] != '+')
-        len++;
-    if (var[len] == '+' && var[len + 1] == '=')
-        return (-2);
-    while (exported && exported[i]) {
-        if (!ft_strncmp(exported[i], var, len) &&
-            (exported[i][len] == '\0' || exported[i][len] == '=')) {
-            return i;
-        }
+int	is_in_exported(char *var, char **exported)
+{
+	int	i;
+	int	len;
+
+	i = 0;
+	len = 0;
+	while (var[len] && var[len] != '=' && var[len] != '+')
+		len++;
+	if (var[len] == '+' && var[len + 1] == '=')
+		return (-2);
+	while (exported && exported[i])
+	{
+		if (!ft_strncmp(exported[i], var, len) &&
+			(exported[i][len] == '\0' || exported[i][len] == '='))
+			return (i);
+		i++;
+	}
+	return (-1);
+}
+
+static char	*create_appended_var(char *old_var, char *append_value, int var_name_len)
+{
+	char	*new_var;
+	char	*temp;
+
+	if (old_var[var_name_len] == '=')
+		new_var = ft_strjoin(old_var, append_value);
+	else
+	{
+		temp = ft_strjoin(old_var, "=");
+		new_var = ft_strjoin(temp, append_value);
+		free(temp);
+	}
+	return (new_var);
+}
+
+static int	handle_append_exported(char *var, char ***exported, int len)
+{
+	int		i;
+	int		var_name_len;
+	char	*old_var;
+	char	*append_value;
+
+	var_name_len = 0;
+	while (var[var_name_len] && var[var_name_len] != '+')
+		var_name_len++;
+	append_value = var + var_name_len + 2;
+	i = 0;
+	while (i < len)
+	{
+		if (!ft_strncmp((*exported)[i], var, var_name_len) && 
+			((*exported)[i][var_name_len] == '=' || 
+			(*exported)[i][var_name_len] == '\0'))
+		{
+			old_var = (*exported)[i];
+			(*exported)[i] = create_appended_var(old_var, append_value, var_name_len);
+			free(old_var);
+			return (1);
+		}
+		i++;
+	}
+	return (0);
+}
+
+void    copy_to_new_exported(char **new_exported, char ***exported, int len, int i)
+{
+    while (i < len)
+	{
+		new_exported[i] = (*exported)[i];
+		i++;
+	}
+}
+
+static void	create_new_append_var(char *var, char ***exported, int len)
+{
+	int		i;
+	int		var_name_len;
+	char	*var_name;
+	char	*temp;
+	char	*new_var;
+	char	**new_exported;
+
+	var_name_len = 0;
+	while (var[var_name_len] && var[var_name_len] != '+')
+		var_name_len++;
+	var_name = ft_substr(var, 0, var_name_len);
+	temp = ft_strjoin(var_name, "=");
+	new_var = ft_strjoin(temp, var + var_name_len + 2);
+	free(var_name);
+	free(temp);
+	new_exported = malloc(sizeof(char *) * (len + 2));
+	i = 0;
+    copy_to_new_exported(new_exported, exported, len, i);
+	new_exported[len] = new_var;
+	new_exported[len + 1] = NULL;
+	if (*exported)
+		free(*exported);
+	*exported = new_exported;
+}
+
+static void	add_new_exported(char *var, char ***exported, int len)
+{
+	char	**new_exported;
+	int		i;
+
+	new_exported = malloc(sizeof(char *) * (len + 2));
+	i = 0;
+	while (i < len)
+	{
+		new_exported[i] = (*exported)[i];
+		i++;
+	}
+	new_exported[len] = ft_strdup(var);
+	new_exported[len + 1] = NULL;
+	if (*exported)
+		free(*exported);
+	*exported = new_exported;
+}
+
+void	add_or_update_exported(char *var, char ***exported)
+{
+	int	idx;
+	int	len;
+
+	idx = is_in_exported(var, *exported);
+	len = 0;
+	while (*exported && (*exported)[len])
+		len++;
+	if (idx >= 0)
+	{
+		free((*exported)[idx]);
+		(*exported)[idx] = ft_strdup(var);
+	}
+	else if (idx == -2)
+	{
+		if (!handle_append_exported(var, exported, len))
+			create_new_append_var(var, exported, len);
+	}
+	else
+		add_new_exported(var, exported, len);
+}
+
+static void	create_new_append_env(char *var, char ***env, int len, int var_name_len)
+{
+    char	*var_name;
+    char	*temp;
+    char	*new_var;
+    char	**new_env;
+    int		i;
+
+    var_name = ft_substr(var, 0, var_name_len);
+    temp = ft_strjoin(var_name, "=");
+    new_var = ft_strjoin(temp, var + var_name_len + 2);
+    free(var_name);
+    free(temp);
+    new_env = malloc(sizeof(char *) * (len + 2));
+    i = 0;
+    while (i < len)
+    {
+        new_env[i] = (*env)[i];
         i++;
     }
-    return -1;
-}
-
-// Helper: add or update var in exported
-void add_or_update_exported(char *var, char ***exported) {
-    int idx = is_in_exported(var, *exported);
-    int len = 0, i = 0;
-    while (*exported && (*exported)[len])
-        len++;
-    if (idx >= 0) {
-        free((*exported)[idx]);
-        (*exported)[idx] = ft_strdup(var);
-    }
-    else if (idx == -2)
-    {
-        // Find the variable name length (before +=)
-        int var_name_len = 0;
-        while (var[var_name_len] && var[var_name_len] != '+')
-            var_name_len++;
-        
-        // Look for existing variable
-        for (i = 0; i < len; i++)
-        {
-            if (!ft_strncmp((*exported)[i], var, var_name_len) && 
-                ((*exported)[i][var_name_len] == '=' || (*exported)[i][var_name_len] == '\0'))
-            {
-                // Variable exists, append value
-                char *old_var = (*exported)[i];
-                char *append_value = var + var_name_len + 2; // Skip "+="
-                (*exported)[i] = ft_strjoin(old_var, append_value);
-                free(old_var);
-                return;
-            }
-        }
-        // Variable doesn't exist, create it with just the append value
-        char *var_name = ft_substr(var, 0, var_name_len);
-        char *temp = ft_strjoin(var_name, "=");
-        char *new_var = ft_strjoin(temp, var + var_name_len + 2);
-        free(var_name);
-        free(temp);
-        
-        char **new_exported = malloc(sizeof(char*) * (len + 2));
-        for (i = 0; i < len; i++)
-            new_exported[i] = (*exported)[i];
-        new_exported[len] = new_var;
-        new_exported[len+1] = NULL;
-        if (*exported)
-            free(*exported);
-        *exported = new_exported;
-    }
-    else
-    {
-        char **new_exported = malloc(sizeof(char*) * (len + 2));
-        for (i = 0; i < len; i++)
-            new_exported[i] = (*exported)[i];
-        new_exported[len] = ft_strdup(var);
-        new_exported[len+1] = NULL;
-        if (*exported)
-            free(*exported);
-        *exported = new_exported;
-    }
-}
-
-// Helper: add or update var in env (only if contains '=')
-void add_or_update_env(char *var, char ***env) {
-    if (!ft_strchr(var, '='))
-        return;
-    int i = 0, len = 0;
-    while (*env && (*env)[len])
-        len++;
-    
-    // Check for += operation - find += manually
-    int var_name_len = 0;
-    int is_append = 0;
-    while (var[var_name_len]) {
-        if (var[var_name_len] == '+' && var[var_name_len + 1] == '=') {
-            is_append = 1;
-            break;
-        }
-        if (var[var_name_len] == '=')
-            break;
-        var_name_len++;
-    }
-    
-    if (is_append) {
-        char *append_value = var + var_name_len + 2; // Skip "+="
-        
-        // Look for existing variable
-        for (i = 0; i < len; i++) {
-            if (!ft_strncmp((*env)[i], var, var_name_len) && (*env)[i][var_name_len] == '=') {
-                char *old_var = (*env)[i];
-                (*env)[i] = ft_strjoin(old_var, append_value);
-                free(old_var);
-                return;
-            }
-        }
-        // Variable doesn't exist, create it with just the append value
-        char *var_name = ft_substr(var, 0, var_name_len);
-        char *temp = ft_strjoin(var_name, "=");
-        char *new_var = ft_strjoin(temp, append_value);
-        free(var_name);
-        free(temp);
-        
-        char **new_env = malloc(sizeof(char*) * (len + 2));
-        for (i = 0; i < len; i++)
-            new_env[i] = (*env)[i];
-        new_env[len] = new_var;
-        new_env[len+1] = NULL;
-        if (*env)
-            free(*env);
-        *env = new_env;
-        return;
-    }
-    
-    // Regular assignment
-    int eqpos = 0;
-    while (var[eqpos] && var[eqpos] != '=')
-        eqpos++;
-    for (i = 0; i < len; i++) {
-        if (!ft_strncmp((*env)[i], var, eqpos) && (*env)[i][eqpos] == '=') {
-            free((*env)[i]);
-            (*env)[i] = ft_strdup(var);
-            return;
-        }
-    }
-    char **new_env = malloc(sizeof(char*) * (len + 2));
-    for (i = 0; i < len; i++)
-        new_env[i] = (*env)[i];
-    new_env[len] = ft_strdup(var);
-    new_env[len+1] = NULL;
+    new_env[len] = new_var;
+    new_env[len + 1] = NULL;
     if (*env)
         free(*env);
     *env = new_env;
 }
+static void	handle_append_env(char *var, char ***env, int len, int var_name_len)
+{
+	int		i;
+	char	*old_var;
+	char	*append_value;
 
-// Update add_var to handle exported/env split
-void add_var(char **argv, char ***env, char ***exported) {
-    int i = 1;
-    while (argv[i])
-    {
-        if (!is_valid_identifier(argv[i])) {
-            ft_putstr_fd("minishell: export: not a valid identifier\n", 2);
-            exit_status = 1;
-        }
-        else
-        {
-            if (ft_strchr(argv[i], '='))
-            {
-                add_or_update_exported(argv[i], exported);
-                add_or_update_env(argv[i], env);
-            }
-            else
-            {
-                add_or_update_exported(argv[i], exported);
-            }
-            exit_status = 0;
-        }
-        i++;
-    }
+	append_value = var + var_name_len + 2;
+	i = 0;
+	while (i < len)
+	{
+		if (!ft_strncmp((*env)[i], var, var_name_len) && 
+			(*env)[i][var_name_len] == '=')
+		{
+			old_var = (*env)[i];
+			(*env)[i] = ft_strjoin(old_var, append_value);
+			free(old_var);
+			return ;
+		}
+		i++;
+	}
+	create_new_append_env(var, env, len, var_name_len);
 }
 
-int ft_export(char **argv, char ***env, char ***exported) {
-    int i = 0;
-    if (!argv[1]) {
-        char **copy = copy_env(*exported);
-        sort_export(copy);
-        print_format(copy);
-        while (copy[i]) {
-            ft_putstr_fd(copy[i], STDOUT_FILENO);
-            ft_putstr_fd("\n", STDOUT_FILENO);
-            i++;
-        }
-        i = 0;
-        while(copy[i])
-        {
-            free(copy[i]);
-            i++;
-        }
-        free(copy);
-        return (EXIT_SUCCESS);
-    } else {
-        add_var(argv, env, exported);
-        return (exit_status);
-    }
-    return (EXIT_FAILURE);
+
+static int	check_append_operation(char *var)
+{
+	int	var_name_len;
+
+	var_name_len = 0;
+	while (var[var_name_len])
+	{
+		if (var[var_name_len] == '+' && var[var_name_len + 1] == '=')
+			return (var_name_len);
+		if (var[var_name_len] == '=')
+			break ;
+		var_name_len++;
+	}
+	return (-1);
+}
+static int get_eqpos(char *var)
+{
+    int eqpos;
+
+    eqpos = 0;
+    while (var[eqpos] && var[eqpos] != '=')
+		eqpos++;
+    return (eqpos);
 }
 
+static void	handle_regular_assignment(char *var, char ***env, int len)
+{
+	int		eqpos;
+	int		i;
+	char	**new_env;
+
+	eqpos = get_eqpos(var);
+	i = 0;
+	while (i < len)
+	{
+		if (!ft_strncmp((*env)[i], var, eqpos) && (*env)[i][eqpos] == '=')
+		{
+			free((*env)[i]);
+			(*env)[i] = ft_strdup(var);
+			return ;
+		}
+		i++;
+	}
+	new_env = malloc(sizeof(char *) * (len + 2));
+	i = -1;
+	while (++i < len)
+		new_env[i] = (*env)[i];
+	new_env[len] = ft_strdup(var);
+	new_env[len + 1] = NULL;
+	if (*env)
+		free(*env);
+	*env = new_env;
+}
+
+void	add_or_update_env(char *var, char ***env)
+{
+	int	len;
+	int	var_name_len;
+
+	if (!ft_strchr(var, '='))
+		return ;
+	len = 0;
+	while (*env && (*env)[len])
+		len++;
+	var_name_len = check_append_operation(var);
+	if (var_name_len >= 0)
+		handle_append_env(var, env, len, var_name_len);
+	else
+		handle_regular_assignment(var, env, len);
+}
+
+void	add_var(char **argv, char ***env, char ***exported)
+{
+	int	i;
+
+	i = 1;
+	while (argv[i])
+	{
+		if (!is_valid_identifier(argv[i]))
+		{
+			ft_putstr_fd("minishell: export: not a valid identifier\n", 2);
+			exit_status = 1;
+		}
+		else
+		{
+			if (ft_strchr(argv[i], '='))
+			{
+				add_or_update_exported(argv[i], exported);
+				add_or_update_env(argv[i], env);
+			}
+			else
+				add_or_update_exported(argv[i], exported);
+			exit_status = 0;
+		}
+		i++;
+	}
+}
+
+static void	print_exported_vars(char **copy)
+{
+	int	i;
+
+	i = 0;
+	while (copy[i])
+	{
+		ft_putstr_fd(copy[i], STDOUT_FILENO);
+		ft_putstr_fd("\n", STDOUT_FILENO);
+		i++;
+	}
+}
+
+static void	free_copy_array(char **copy)
+{
+	int	i;
+
+	i = 0;
+	while (copy[i])
+	{
+		free(copy[i]);
+		i++;
+	}
+	free(copy);
+}
+
+int	ft_export(char **argv, char ***env, char ***exported)
+{
+	char	**copy;
+
+	if (!argv[1])
+	{
+		copy = copy_env(*exported);
+		sort_export(copy);
+		print_format(copy);
+		print_exported_vars(copy);
+		free_copy_array(copy);
+		return (EXIT_SUCCESS);
+	}
+	else
+	{
+		add_var(argv, env, exported);
+		return (exit_status);
+	}
+	return (EXIT_FAILURE);
+}
 // env ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int ft_env(char **argv, char **env)
@@ -726,38 +957,43 @@ int ft_env(char **argv, char **env)
     return (EXIT_SUCCESS);
 }
 
-int ft_unset(char **argv, char ***env, char ***exported) {
-    int i = 1, j, len;
-    while (argv[i]) {
-        len = 0;
-        while ((*env)[len])
-            len++;
-        for (j = 0; j < len; j++) {
-            int n = ft_strlen(argv[i]);
-            if (!ft_strncmp(argv[i], (*env)[j], n) && ((*env)[j][n] == '=' || (*env)[j][n] == '\0')) {
-                ft_swap_ptr(env, j, len-1);
-                free((*env)[len-1]);
-                (*env)[len-1] = NULL;
-                len--;
-                break;
-            }
-        }
-        len = 0;
-        while ((*exported)[len])
-            len++;
-        for (j = 0; j < len; j++) {
-            int n = ft_strlen(argv[i]);
-            if (!ft_strncmp(argv[i], (*exported)[j], n) && ((*exported)[j][n] == '=' || (*exported)[j][n] == '\0')) {
-                ft_swap_ptr(exported, j, len-1);
-                free((*exported)[len-1]);
-                (*exported)[len-1] = NULL;
-                len--;
-                break;
-            }
-        }
-        i++;
-    }
-    return (EXIT_SUCCESS);
+static void	remove_from_env(char *arg, char ***env)
+{
+	int		len;
+	int		j;
+	int		n;
+
+	len = 0;
+	while ((*env)[len])
+		len++;
+	j = 0;
+	while (j < len)
+	{
+		n = ft_strlen(arg);
+		if (!ft_strncmp(arg, (*env)[j], n)
+			&& ((*env)[j][n] == '=' || (*env)[j][n] == '\0'))
+		{
+			ft_swap_ptr(env, j, len - 1);
+			free((*env)[len - 1]);
+			(*env)[len - 1] = NULL;
+			break ;
+		}
+		j++;
+	}
+}
+
+int	ft_unset(char **argv, char ***env, char ***exported)
+{
+	int	i;
+
+	i = 1;
+	while (argv[i])
+	{
+		remove_from_env(argv[i], env);
+		remove_from_env(argv[i], exported);
+		i++;
+	}
+	return (EXIT_SUCCESS);
 }
 
 void    free_mem(t_tree *root, char **env, char **exported, t_fd *fd)
@@ -793,7 +1029,11 @@ int ret_ex_code(char **argv)
         exit_code = 0;
     return(exit_code);
 }
-
+void    clean_exit(t_tree *root, char **env, char **exported, t_fd *fd)
+{
+        free_mem(root, env, exported, fd);
+        exit (exit_status);    
+}
 int    ft_exit(t_tree *root, char **env, char **exported, t_fd *fd)
 {
     int i;
@@ -804,10 +1044,7 @@ int    ft_exit(t_tree *root, char **env, char **exported, t_fd *fd)
     i = 0;
     clear_history();
     if (!argv[1])
-    {
-        free_mem(root, env, exported, fd);
-        exit (exit_status);
-    }
+        clean_exit(root, env, exported, fd);
     while (argv[1][i])
     {
         if ((argv[1][i] < '0' || argv[1][i] > '9') && argv[1][i] != '+' && argv[1][i] != '-')
