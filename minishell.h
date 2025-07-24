@@ -6,14 +6,13 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 15:23:36 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/19 21:36:12 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/24 16:19:49 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MINISHELL_H
 #define MINISHELL_H
 
-// Error codes matching bash behavior
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
 #define EXIT_BUILTIN_ERROR 2
@@ -34,23 +33,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "parsing.h"
-// typedef enum type
-// {
-//     COMMAND,
-//     LESS,
-//     GREATER,
-//     APPEND,
-//     PIPE
-// }           type;
-
-// typedef struct s_tree
-// {
-//     struct s_tree *left;
-//     struct s_tree *right;
-//     char *file_name;
-//     char **command;
-//     type type;
-// }              t_tree;
 
 typedef struct s_pid
 {

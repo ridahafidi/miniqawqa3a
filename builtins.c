@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 17:21:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/19 21:48:06 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/24 16:43:02 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,22 @@ int find_start(char *s)
     return(0); 
 }
 
+void    print_args(char **argv, int i)
+{
+    while (argv[i])
+    {
+        ft_putstr_fd(argv[i], STDOUT_FILENO);
+        i++;
+        if(argv[i])
+           write(STDOUT_FILENO, " ", 1); 
+    }
+}
+
+int no_args()
+{
+    write(STDOUT_FILENO, "\n", 1);
+    return (0);
+}
 int ft_echo(char **argv, char ***env, int status)
 {
     int i;
@@ -94,30 +110,20 @@ int ft_echo(char **argv, char ***env, int status)
     i = 1;
     n_flag = 0;
     if (!argv[i])
-    {
-        write(STDOUT_FILENO, "\n", 1);
-        return (0);
-    }
+        return(no_args());
     while (argv[i] && argv[i][0] == '-')
     {
         int j = 1;
         while (argv[i][j] == 'n')
             j++;
-        if (argv[i][j] != '\0')  // If not all 'n', break
+        if (argv[i][j] != '\0')
             break;
-        if (j == 1)  // If just "-", break
+        if (j == 1)
             break;
         n_flag = 1;
         i++;
     }
-    // strip_quotes_from_tokens(argv + i, 0);
-    while (argv[i])
-    {
-        ft_putstr_fd(argv[i], STDOUT_FILENO);
-        i++;
-        if(argv[i])
-           write(STDOUT_FILENO, " ", 1); 
-    }
+    print_args(argv, i);
     if (n_flag == 0)
         write(STDOUT_FILENO, "\n", 1);
     return (0);
@@ -499,7 +505,7 @@ int indetical_variable(char ***env, char *var)
     return (1);
 }
 
-// Helper: check if var is in exported
+// Helper: check if var is in exported//////////////////////////////////////////////////////////////////
 int is_in_exported(char *var, char **exported) {
     int i = 0;
     int len = 0;
@@ -673,10 +679,8 @@ void add_var(char **argv, char ***env, char ***exported) {
         }
         i++;
     }
-    // return (EXIT_SUCCESS);
 }
 
-// Update ft_export to print exported list or add variables
 int ft_export(char **argv, char ***env, char ***exported) {
     int i = 0;
     if (!argv[1]) {
@@ -703,7 +707,7 @@ int ft_export(char **argv, char ***env, char ***exported) {
     return (EXIT_FAILURE);
 }
 
-// env
+// env ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int ft_env(char **argv, char **env)
 {
@@ -722,11 +726,9 @@ int ft_env(char **argv, char **env)
     return (EXIT_SUCCESS);
 }
 
-// Update ft_unset to remove from both env and exported
 int ft_unset(char **argv, char ***env, char ***exported) {
     int i = 1, j, len;
     while (argv[i]) {
-        // Remove from env
         len = 0;
         while ((*env)[len])
             len++;
@@ -740,7 +742,6 @@ int ft_unset(char **argv, char ***env, char ***exported) {
                 break;
             }
         }
-        // Remove from exported
         len = 0;
         while ((*exported)[len])
             len++;
@@ -759,6 +760,40 @@ int ft_unset(char **argv, char ***env, char ***exported) {
     return (EXIT_SUCCESS);
 }
 
+void    free_mem(t_tree *root, char **env, char **exported, t_fd *fd)
+{
+    free_tree(&root);
+    free(fd);
+    free_array(env);
+    free_array(exported);
+}
+
+void    exit_error(char **argv)
+{
+    ft_putstr_fd("exit\n", STDERR_FILENO);
+    ft_putstr_fd("minishell: exit: ", STDERR_FILENO);
+    ft_putstr_fd(argv[1], STDERR_FILENO);
+    ft_putstr_fd(": numeric argument required\n", STDERR_FILENO);
+}
+
+int    many_args()
+{
+    ft_putstr_fd("exit\n", STDERR_FILENO);
+    ft_putstr_fd("minishell: exit: too many arguments\n", STDERR_FILENO);
+    return (EXIT_FAILURE);
+}
+
+int ret_ex_code(char **argv)
+{
+    int exit_code;
+
+    if (argv[1])
+        exit_code = ft_atoi(argv[1]);
+    else
+        exit_code = 0;
+    return(exit_code);
+}
+
 int    ft_exit(t_tree *root, char **env, char **exported, t_fd *fd)
 {
     int i;
@@ -768,48 +803,25 @@ int    ft_exit(t_tree *root, char **env, char **exported, t_fd *fd)
     argv = root->command;
     i = 0;
     clear_history();
-    //check if numeric
     if (!argv[1])
     {
-        free_tree(&root);
-        free(fd);
-        free_array(env);
-        free_array(exported);
+        free_mem(root, env, exported, fd);
         exit (exit_status);
     }
     while (argv[1][i])
     {
         if ((argv[1][i] < '0' || argv[1][i] > '9') && argv[1][i] != '+' && argv[1][i] != '-')
             {
-                ft_putstr_fd("exit\n", STDERR_FILENO);
-                ft_putstr_fd("minishell: exit: ", STDERR_FILENO);
-                ft_putstr_fd(argv[1], STDERR_FILENO);
-                ft_putstr_fd(": numeric argument required\n", STDERR_FILENO);
-                free_tree(&root);
-                free(fd);
-                free_array(env);
-                free_array(exported);
+                exit_error(argv);
+                free_mem(root, env, exported, fd);
                 exit(2);
             }
         i++;
     }
     if (argv[1] && argv[2])
-    {
-        ft_putstr_fd("exit\n", STDERR_FILENO);
-        ft_putstr_fd("minishell: exit: too many arguments\n", STDERR_FILENO);
-        // if (root)
-        //     free_tree(&root);
-        // free(fd);
-        return (EXIT_FAILURE);
-    }
-    if (argv[1])
-        exit_code = ft_atoi(argv[1]);
-    else
-        exit_code = 0;
-    free_tree(&root);
-    free(fd);
-    free_array(env);
-    free_array(exported);
+        return (many_args());
+    exit_code = ret_ex_code(argv);
+    free_mem(root, env, exported, fd);
     exit (exit_code & 0xFF);
 }
 
@@ -833,4 +845,5 @@ int handle_builtins(t_tree *root, t_fd *fd, char ***env, char ***exported, int s
     else if (!ft_strcmp(root->command[0], "exit"))
         exit_code = ft_exit(root, *env, *exported, fd);
     return (exit_code);
+    
 }

@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:24:33 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/17 15:16:49 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/24 16:19:26 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,23 +35,22 @@ typedef struct s_token_type
 	int				end_len;
 }					t_token_type;
 
-// Helper struct for segment
 typedef struct s_segment {
     char *str;
-    char quote; // 0=unquoted, '\''=single, '"'=double
-    int was_quoted; // New: tracks if this was originally quoted
+    char quote;
+    int was_quoted;
     struct s_segment *next;
 } t_segment;
 
 
 typedef enum type
 {
-	COMMAND, // cmd
-	LESS,    // <
-	GREATER, // >
-	APPEND,  // >>
-	PIPE,    // |
-	HEREDOC,  // <<
+	COMMAND,
+	LESS,
+	GREATER,
+	APPEND,
+	PIPE,
+	HEREDOC,
 }					type;
 
 typedef struct s_tree
