@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:17:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/22 16:19:38 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/25 16:13:53 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,8 +60,7 @@ char    *get_path(char *cmd, char **env)
 		cmd_path = ft_strjoin(dir[i], tmp_cmd);
 		if (!access(cmd_path, F_OK | X_OK))
 		{
-			free_array(dir);
-			free(tmp_cmd);
+			(free_array(dir), free(tmp_cmd));
 			return (cmd_path);
 		}
 		free(cmd_path);
@@ -96,152 +95,142 @@ int is_directory(const char *path)
     return (S_ISDIR(path_stat.st_mode));
 }
 
-void    execute_command(t_tree *root, t_fd *fd, char **env, char **exported)
+
+static void	handle_execution_error(t_tree *root, char *path, char **env,
+	char **exported)
 {
-    char *path;
-    int i = 0;
-    
-    if(fd)
-        free(fd);
-    
-    // Skip empty command arguments
-    while(root->command[i] && root->command[i][0] == '\0')
-    {
-        i++;
-    }
-    
-    // If no valid command found, exit successfully (bash behavior)
-    if (!root->command[i])
-    {
-        free_array(env);
-        free_array(exported);
-        free_tree(&root);
-        clear_history();
-        exit(EXIT_SUCCESS);
-    }
-    
-    // Check if it's an absolute or relative path
-    if (ft_strchr(root->command[i], '/') || root->command[i][0] == '.')
-    {
-        // Check if path exists
-        if (access(root->command[i], F_OK) == -1)
-        {
-            free_array(env);
-            free_array(exported);
-            ft_putstr_fd("minishell: ", STDERR_FILENO);
-            ft_putstr_fd(root->command[i], STDERR_FILENO);
-            ft_putstr_fd(": No such file or directory\n", STDERR_FILENO);
-            clear_history();
-            free_tree(&root);
-            exit(127);  // Command not found
-        }
-        
-        // Check if it's a directory
-        if (is_directory(root->command[i]))
-        {
-            free_array(env);
-            free_array(exported);
-            ft_putstr_fd("minishell: ", STDERR_FILENO);
-            ft_putstr_fd(root->command[i], STDERR_FILENO);
-            ft_putstr_fd(": Is a directory\n", STDERR_FILENO);
-            clear_history();
-            free_tree(&root);
-            exit(126);  // Permission denied (bash behavior for directories)
-        }
-        
-        // Check execute permission
-        if (access(root->command[i], X_OK) == -1)
-        {
-            free_array(env);
-            free_array(exported);
-            ft_putstr_fd("minishell: ", STDERR_FILENO);
-            ft_putstr_fd(root->command[i], STDERR_FILENO);
-            ft_putstr_fd(": Permission denied\n", STDERR_FILENO);
-            clear_history();
-            free_tree(&root);
-            exit(126);  // Permission denied
-        }
-        
-        path = root->command[i];
-    }
-    else
-    {
-        // Check if command exists in PATH
-        path = get_path(root->command[i], env);
-        if (!path)
-        {
-            free_array(env);
-            free_array(exported);
-            clear_history();
-            ft_putstr_fd("minishell: ", STDERR_FILENO);
-            ft_putstr_fd(root->command[i], STDERR_FILENO);
-            ft_putstr_fd(": command not found\n", STDERR_FILENO);
-            free_tree(&root);
-            exit(127);  // Command not found
-        }
-        
-        // Additional check: if found path is a directory (shouldn't happen normally)
-        if (is_directory(path))
-        {
-            free(path);
-            free_array(env);
-            free_array(exported);
-            ft_putstr_fd("minishell: ", STDERR_FILENO);
-            ft_putstr_fd(root->command[i], STDERR_FILENO);
-            ft_putstr_fd(": Is a directory\n", STDERR_FILENO);
-            clear_history();
-            free_tree(&root);
-            exit(126);
-        }
-    }
-    
-    // Execute the command
-    if (execve(path, &root->command[i], env) == -1)
-    {
-        // Clean up path if it was allocated by get_path
-        if (path != root->command[i])
-            free(path);
-            
-        if (errno == EACCES)
-        {
-            free_array(env);
-            free_array(exported);
-            ft_putstr_fd("minishell: ", STDERR_FILENO);
-            ft_putstr_fd(root->command[i], STDERR_FILENO);
-            ft_putstr_fd(": Permission denied\n", STDERR_FILENO);
-            clear_history();
-            free_tree(&root);
-            exit(126);  // Permission denied
-        }
-        else if (errno == ENOENT)
-        {
-            free_array(env);
-            free_array(exported);
-            ft_putstr_fd("minishell: ", STDERR_FILENO);
-            ft_putstr_fd(root->command[i], STDERR_FILENO);
-            ft_putstr_fd(": No such file or directory\n", STDERR_FILENO);
-            clear_history();
-            free_tree(&root);
-            exit(127);  // Command not found
-        }
-        else if (errno == ENOEXEC)
-        {
-            free_array(env);
-            free_array(exported);
-            ft_putstr_fd("minishell: ", STDERR_FILENO);
-            ft_putstr_fd(root->command[i], STDERR_FILENO);
-            ft_putstr_fd(": Exec format error\n", STDERR_FILENO);
-            clear_history();
-            free_tree(&root);
-            exit(126);  // Cannot execute
-        }
-        else
-        {
-            free_array(env);
-            free_array(exported);
-            clear_history();
-            free_tree(&root);
-            exit(EXIT_FAILURE);  // Other execution errors
-        }
-    }
+	if (path != root->command[0])
+		free(path);
+	free_array(env);
+	free_array(exported);
+	clear_history();
+	free_tree(&root);
+}
+
+static void	handle_path_errors(t_tree *root, char **env, char **exported, int i)
+{
+	free_array(env);
+	free_array(exported);
+	ft_putstr_fd("minishell: ", STDERR_FILENO);
+	ft_putstr_fd(root->command[i], STDERR_FILENO);
+	if (access(root->command[i], F_OK) == -1)
+		ft_putstr_fd(": No such file or directory\n", STDERR_FILENO);
+	else if (is_directory(root->command[i]))
+		ft_putstr_fd(": Is a directory\n", STDERR_FILENO);
+	else
+		ft_putstr_fd(": Permission denied\n", STDERR_FILENO);
+	clear_history();
+	free_tree(&root);
+}
+
+static void	handle_command_not_found(t_tree *root, char **env, char **exported,
+	int i)
+{
+	free_array(env);
+	free_array(exported);
+	clear_history();
+	ft_putstr_fd("minishell: ", STDERR_FILENO);
+	ft_putstr_fd(root->command[i], STDERR_FILENO);
+	ft_putstr_fd(": command not found\n", STDERR_FILENO);
+	free_tree(&root);
+}
+
+static void	handle_execve_error(t_tree *root, char *path, char **env,
+	char **exported)
+{
+	int	i;
+
+	i = 0;
+	while (root->command[i] && root->command[i][0] == '\0')
+		i++;
+	handle_execution_error(root, path, env, exported);
+	ft_putstr_fd("minishell: ", STDERR_FILENO);
+	ft_putstr_fd(root->command[i], STDERR_FILENO);
+	if (errno == EACCES)
+	{
+		ft_putstr_fd(": Permission denied\n", STDERR_FILENO);
+		exit(126);
+	}
+	else if (errno == ENOENT)
+	{
+		ft_putstr_fd(": No such file or directory\n", STDERR_FILENO);
+		exit(127);
+	}
+	else if (errno == ENOEXEC)
+	{
+		ft_putstr_fd(": Exec format error\n", STDERR_FILENO);
+		exit(126);
+	}
+	else
+		exit(EXIT_FAILURE);
+}
+
+static char	*handle_absolute_path(t_tree *root, char **env, char **exported, int i)
+{
+	if (access(root->command[i], F_OK) == -1)
+	{
+		handle_path_errors(root, env, exported, i);
+		exit(127);
+	}
+	if (is_directory(root->command[i]))
+	{
+		handle_path_errors(root, env, exported, i);
+		exit(126);
+	}
+	if (access(root->command[i], X_OK) == -1)
+	{
+		handle_path_errors(root, env, exported, i);
+		exit(126);
+	}
+	return (root->command[i]);
+}
+
+static char	*handle_relative_path(t_tree *root, char **env, char **exported, int i)
+{
+	char	*path;
+
+	path = get_path(root->command[i], env);
+	if (!path)
+	{
+		handle_command_not_found(root, env, exported, i);
+		exit(127);
+	}
+	if (is_directory(path))
+	{
+		free(path);
+		handle_path_errors(root, env, exported, i);
+		exit(126);
+	}
+	return (path);
+}
+
+static char	*get_command_path(t_tree *root, char **env, char **exported, int i)
+{
+	if (ft_strchr(root->command[i], '/') || root->command[i][0] == '.')
+		return (handle_absolute_path(root, env, exported, i));
+	else
+		return (handle_relative_path(root, env, exported, i));
+}
+
+void	execute_command(t_tree *root, t_fd *fd, char **env, char **exported)
+{
+	char	*path;
+	int		i;
+
+	i = 0;
+	if (fd)
+		free(fd);
+	while (root->command[i] && root->command[i][0] == '\0')
+		i++;
+	if (!root->command[i])
+	{
+		free_array(env);
+		free_array(exported);
+		free_tree(&root);
+		clear_history();
+		exit(EXIT_SUCCESS);
+	}
+	path = get_command_path(root, env, exported, i);
+	if (execve(path, &root->command[i], env) == -1)
+		handle_execve_error(root, path, env, exported);
 }
