@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:39:56 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/25 17:05:13 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/31 18:38:45 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ static void	write_heredoc_line(char *line, char *delimiter, int pipefd,
 	}
 	else
 	{
-		expanded = expand(&line, env, exit_status);
+		expanded = expand(&line, env, 0);
 		write(pipefd, expanded[0], ft_strlen(expanded[0]));
 		write(pipefd, "\n", 1);
 		free_array(expanded);
@@ -74,7 +74,7 @@ int	handle_heredoc(char *delimiter, char **env)
 	return (pipefd[0]);
 }
 
-void	append(t_tree *root, int *in, int *out)
+void	append(t_tree *root, int *in, int *out, int *exit_status)
 {
 	if (root->type == APPEND && root->file_name)
 	{
@@ -86,12 +86,13 @@ void	append(t_tree *root, int *in, int *out)
 			ft_putstr_fd("minishell: ", 2);
 			ft_putstr_fd(root->file_name, 2);
 			ft_putstr_fd(": Permission denied\n", 2);
-			exit_status = 1;
+			if (exit_status)
+				*exit_status = 1;
 		}
 	}
 }
 
-static void	handle_less_redirection(t_tree *root, int *in)
+static void	handle_less_redirection(t_tree *root, int *in, int *exit_status)
 {
 	if (*in != STDIN_FILENO)
 		close(*in);
@@ -101,11 +102,12 @@ static void	handle_less_redirection(t_tree *root, int *in)
 		ft_putstr_fd("minishell: ", 2);
 		ft_putstr_fd(root->file_name, 2);
 		ft_putstr_fd(": No such file or directory\n", 2);
-		exit_status = 1;
+		if (exit_status)
+			*exit_status = 1;
 	}
 }
 
-static void	handle_greater_redirection(t_tree *root, int *out)
+static void	handle_greater_redirection(t_tree *root, int *out, int *exit_status)
 {
 	if (*out != STDOUT_FILENO)
 		close(*out);
@@ -115,42 +117,44 @@ static void	handle_greater_redirection(t_tree *root, int *out)
 		ft_putstr_fd("minishell: ", 2);
 		ft_putstr_fd(root->file_name, 2);
 		ft_putstr_fd(": Permission denied\n", 2);
-		exit_status = 1;
+		if (exit_status)
+			*exit_status = 1;
 	}
 }
 
-void	less_and_greater(t_tree *root, int *in, int *out)
+void	less_and_greater(t_tree *root, int *in, int *out, int *exit_status)
 {
 	if (root->type == LESS && root->file_name)
-		handle_less_redirection(root, in);
+		handle_less_redirection(root, in, exit_status);
 	else if (root->type == GREATER && root->file_name)
-		handle_greater_redirection(root, out);
+		handle_greater_redirection(root, out, exit_status);
 }
 
-static t_tree	*check_ambiguous_redirection(t_tree *root, t_tree *cmd)
+static t_tree	*check_ambiguous_redirection(t_tree *root, t_tree *cmd, int *exit_status)
 {
 	if (root->file_name && !root->file_name[0])
 	{
 		ft_putstr_fd("minishell : ambigious redirection\n", 2);
-		exit_status = 1;
+		if (exit_status)
+			*exit_status = 1;
 		return (NULL);
 	}
-	if (!cmd && exit_status == 1)
+	if (!cmd && exit_status && *exit_status == 1)
 		return (NULL);
 	return (cmd);
 }
 
-static t_tree	*handle_greater_less(t_tree *root, int *in, int *out)
+static t_tree	*handle_greater_less(t_tree *root, int *in, int *out, int *exit_status)
 {
 	t_tree	*cmd;
 
-	cmd = handle_redirections(root->left, in, out, NULL);
-	cmd = check_ambiguous_redirection(root, cmd);
+	cmd = handle_redirections(root->left, in, out, NULL, exit_status);
+	cmd = check_ambiguous_redirection(root, cmd, exit_status);
 	if (!cmd)
 		return (NULL);
 	if ((root->type == GREATER || root->type == LESS) && root->file_name)
 	{
-		less_and_greater(root, in, out);
+		less_and_greater(root, in, out, exit_status);
 		if (*in == -1 || *out == -1)
 			return (NULL);
 		return (cmd);
@@ -158,7 +162,7 @@ static t_tree	*handle_greater_less(t_tree *root, int *in, int *out)
 	return (NULL);
 }
 
-static int	handle_heredoc_redirection(t_tree *root, int *in, char **env)
+static int	handle_heredoc_redirection(t_tree *root, int *in, char **env, int *exit_status)
 {
 	if (*in != STDIN_FILENO)
 		close(*in);
@@ -166,45 +170,45 @@ static int	handle_heredoc_redirection(t_tree *root, int *in, char **env)
 	if (*in == -1)
 	{
 		perror("heredoc failed");
-		exit_status = 1;
+		if (exit_status)
+			*exit_status = 1;
 		return (-1);
 	}
 	return (0);
 }
 
 static t_tree	*handle_append_heredoc(t_tree *root, int *in, int *out,
-	char **env)
+	char **env, int *exit_status)
 {
 	t_tree	*cmd;
 
-	cmd = handle_redirections(root->left, in, out, env);
-	cmd = check_ambiguous_redirection(root, cmd);
+	cmd = handle_redirections(root->left, in, out, env, exit_status);
+	cmd = check_ambiguous_redirection(root, cmd, exit_status);
 	if (!cmd)
 		return (NULL);
 	if (root->type == APPEND && root->file_name)
 	{
-		append(root, in, out);
+		append(root, in, out, exit_status);
 		if (*in == -1 || *out == -1)
 			return (NULL);
 		return (cmd);
 	}
 	else if (root->type == HEREDOC && root->file_name)
-	{
-		if (handle_heredoc_redirection(root, in, env) == -1)
+	{                if (handle_heredoc_redirection(root, in, env, exit_status) == -1)
 			return (NULL);
 	}
 	return (cmd);
 }
 
-t_tree	*handle_redirections(t_tree *root, int *in, int *out, char **env)
+t_tree	*handle_redirections(t_tree *root, int *in, int *out, char **env, int *exit_status)
 {
 	if (!root)
 		return (NULL);
 	if (root->type == COMMAND)
 		return (root);
 	if (root->type == LESS || root->type == GREATER)
-		return (handle_greater_less(root, in, out));
+		return (handle_greater_less(root, in, out, exit_status));
 	else if (root->type == APPEND || root->type == HEREDOC)
-		return (handle_append_heredoc(root, in, out, env));
-	return (handle_redirections(root->left, in, out, env));
+		return (handle_append_heredoc(root, in, out, env, exit_status));
+	return (handle_redirections(root->left, in, out, env, exit_status));
 }

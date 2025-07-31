@@ -3,86 +3,110 @@
 /*                                                        :::      ::::::::   */
 /*   insert_spaces.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: yel-qori <yel-qori@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/08 14:42:40 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/05 17:22:19 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/25 16:47:35 by yel-qori         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int	is_operator(char c)
+char	get_current_quote_state(char *input, int pos)
 {
-	return (c == '|' || c == '<' || c == '>');
+    int		i;
+    char	quote;
+
+    i = 0;
+    quote = 0;
+    while (i < pos)
+    {
+        if (input[i] == '\'' || input[i] == '"')
+        {
+            if (quote == 0)
+                quote = input[i];
+            else if (input[i] == quote)
+                quote = 0;
+        }
+        i++;
+    }
+    return (quote);
+}
+
+int	process_operator_in_result(char *input, char *result, int i, int j)
+{
+	int	len;
+
+	len = ft_strlen(input);
+	if (i + 1 < len && input[i] == input[i + 1])
+	{
+		j = handle_double_operator(input, result, i, j);
+		return (j);
+	}
+	else
+	{
+		j = handle_single_operator(input, result, i, j);
+		return (j);
+	}
+}
+
+int	process_single_character(char *input, char *result, int i, int j)
+{
+	char	quote;
+
+	quote = 0;
+	if (i > 0)
+		quote = get_current_quote_state(input, i);
+	if (!quote && is_operator_char(input[i]))
+	{
+		j = process_operator_in_result(input, result, i, j);
+		return (j);
+	}
+	else
+	{
+		result[j++] = input[i];
+		return (j);
+	}
+}
+
+void	fill_result_string(char *input, char *result, int len)
+{
+	int		i;
+	int		j;
+	char	quote;
+
+	j = 0;
+	quote = 0;
+	i = 0;
+	while (i < len)
+	{
+		quote = update_quote_state(input[i], quote);
+		if (input[i] == '\'' || input[i] == '"')
+		{
+			result[j++] = input[i];
+			i++;
+			continue ;
+		}
+		j = process_single_character(input, result, i, j);
+		if (!quote && is_operator_char(input[i]) && i + 1 < len
+			&& input[i] == input[i + 1])
+			i++;
+		i++;
+	}
+	result[j] = '\0';
 }
 
 char	*add_delimiter_spaces(char *input)
 {
-    int len = strlen(input);
-    int new_len = len;
-    int i;
-    char quote = 0;
-    
-    // First pass: count needed spaces
-    for (i = 0; i < len; i++) {
-        if (input[i] == '\'' || input[i] == '"') {
-            if (!quote)
-                quote = input[i];
-            else if (quote == input[i])
-                quote = 0;
-            continue;
-        }
-        
-        if (!quote && is_operator_char(input[i])) {
-            // Check for >> or << cases
-            if (i + 1 < len && input[i] == input[i + 1]) {
-                new_len += 2;
-                i++;
-            } else {
-                new_len += 2;
-            }
-        }
-    }
-    
-    char *result = malloc(new_len + 1);
-    if (!result)
-        return NULL;
-    
-    int j = 0;
-    quote = 0;
-    for (i = 0; i < len; i++) {
-        if (input[i] == '\'' || input[i] == '"') {
-            if (!quote)
-                quote = input[i];
-            else if (quote == input[i])
-                quote = 0;
-            result[j++] = input[i];
-            continue;
-        }
-        
-        if (!quote && is_operator_char(input[i])) {
-            // Handle >> and << cases
-            if (i + 1 < len && input[i] == input[i + 1]) {
-                if (j > 0 && result[j-1] != ' ')
-                    result[j++] = ' ';
-                result[j++] = input[i];
-                result[j++] = input[i+1];
-                if (i + 2 < len && input[i+2] != ' ')
-                    result[j++] = ' ';
-                i++;
-            } else {
-                // Handle single operator
-                if (j > 0 && result[j-1] != ' ')
-                    result[j++] = ' ';
-                result[j++] = input[i];
-                if (i + 1 < len && input[i+1] != ' ')
-                    result[j++] = ' ';
-            }
-        } else {
-            result[j++] = input[i];
-        }
-    }
-    result[j] = '\0';
-    return result;
+	int		len;
+	int		new_len;
+	char	*result;
+
+	len = ft_strlen(input);
+	new_len = calculate_new_length(input, len);
+	result = malloc(new_len + 1);
+	if (!result)
+		return (NULL);
+	fill_result_string(input, result, len);
+	return (result);
 }

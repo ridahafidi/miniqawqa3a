@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 15:23:36 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/24 16:19:49 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/31 18:45:05 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,9 @@
 
 #include <signal.h>
 #include <unistd.h>
+
+// Global variable for signal handling - only stores signal number
+extern int g_signum;
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -46,27 +49,33 @@ typedef struct s_fd
     int out;
 }   t_fd;
 
-void    execute_command(t_tree *root, t_fd *fd, char **env, char **exported);
+void    execute_command(t_tree *root, t_fd *fd, char **env, char **exported, int *exit_status);
 void    free_tree(t_tree **root);
-t_tree *handle_redirections(t_tree *root, int *in, int *out, char **env);
+t_tree *handle_redirections(t_tree *root, int *in, int *out, char **env, int *exit_status);
 int     is_builtin(char *cmd);
 void rdirectin_out(int in, int out);
-int handle_builtins(t_tree *root, t_fd *fd, char ***env, char ***exported, int status);
-void    execution(t_tree *root, t_fd *fd, char ***env, char ***exported);
+int handle_builtins(t_tree *root, t_fd *fd, char ***env, char ***exported, int *exit_status);
+void    execution(t_tree *root, t_fd *fd, char ***env, char ***exported, int *exit_status);
 void    free_array(char **str);
 char    **copy_env(char **env);
 int ft_strcmp(char *s1, char *s2);
 void reset_signals_for_child(void);
-int    initialize(t_tree *root, t_fd *fd, char ***env, char ***exported);
+int    initialize(t_tree *root, t_fd *fd, char ***env, char ***exported, int *exit_status);
 void	sigint_handler(int sig);
-void	ctrl_d_handle(int sig);
+void	ctrl_d_handle(int sig, int exit_status);
 void	heredoc_sigint_handler(int sig);
 void	child_sigint_handler(int sig);
+int     check_received_signal(int *exit_status);
 int     find_equal(char *str);
 int     find_start(char *s);
-char	**expand(char **argv, char **env, int status);
+char	**expand(char **argv, char **env, int exit_status);
 int     compare_var_env(char *arg, char **env);
 void strip_quotes_from_tokens(char **tokens, int skip_heredoc_delimiter);
-extern int exit_status;
+int	handle_dot_command(t_tree *root, char **env, char **exported, int i);
+int    is_only_spaces(char *str);
+
+// Function prototypes for builtins
+int	ft_export(char **argv, char ***env, char ***exported, int *exit_status);
+void add_var(char **argv, char ***env, char ***exported, int *exit_status);
 
 #endif

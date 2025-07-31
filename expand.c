@@ -6,16 +6,17 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/19 16:26:51 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/25 21:48:38 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#include "minishell.h"
 
 #include "minishell.h"
 
 char    *get_before_dollar(char *str, int dollar_index)
 {
     int i;
-    int len;
     char    *res;
     
     i = 0;
@@ -31,52 +32,39 @@ char    *get_before_dollar(char *str, int dollar_index)
     return (res);
 }
 
-char	*get_pid_str(void)
+static void	process_dollar_sequence(char *str, char *result, int *i, int *ri)
 {
-	pid_t	pid;
-	char	*pid_str;
+	int	dollar_count;
 
-	pid = getpid();
-	pid_str = ft_itoa(pid);
-	return (pid_str);
+	dollar_count = 0;
+	while (str[*i + dollar_count] == '$')
+		dollar_count++;
+	while (dollar_count--)
+		result[(*ri)++] = '$';
+	*i += dollar_count;
 }
 
 char	*expand_dollars(char *str)
 {
 	char	*result;
-	char	*pid;
-	int		i = 0, ri = 0;
-	size_t	len = ft_strlen(str);
+	int		i;
+	int		ri;
+	size_t	len;
 
-	result = malloc(len * 20 + 1);
+	i = 0;
+	ri = 0;
+	len = ft_strlen(str);
+	result = malloc(len * 2 + 1);  // Just need space for doubling $ characters at most
 	if (!result)
 		return (NULL);
-	pid = get_pid_str();
 	while (str[i])
 	{
 		if (str[i] == '$')
-		{
-			int dollar_count = 0;
-			while (str[i + dollar_count] == '$')
-				dollar_count++;
-			int pairs = dollar_count / 2;
-			int rest = dollar_count % 2;
-			while (pairs--)
-			{
-				ft_strlcpy(result + ri, pid, ft_strlen(pid) + 1);
-				ri += ft_strlen(pid);
-			}
-			if (rest)
-				result[ri++] = '$';
-			i += dollar_count;
-		}
+			process_dollar_sequence(str, result, &i, &ri);
 		else
 			result[ri++] = str[i++];
 	}
 	result[ri] = '\0';
-	free(pid);
-    // if (str)
-    //     free(str);
 	return (result);
 }
 
@@ -94,59 +82,58 @@ int	check_for_dollar(char *str)
 	return (0);
 }
 
+static char	*get_braced_var_name(char *str, int *i, int *len)
+{
+	char	*var_name;
+
+	(*i)++;
+	while (str[*i + *len] && str[*i + *len] != '}')
+		(*len)++;
+	if (str[*i + *len] != '}')
+		return (NULL);
+	var_name = malloc(sizeof(char) * (*len + 1));
+	if (!var_name)
+		return (NULL);
+	*len = 0;
+	while (str[*i] && str[*i] != '}')
+		var_name[(*len)++] = str[(*i)++];
+	var_name[*len] = '\0';
+	return (var_name);
+}
+
+static char	*get_regular_var_name(char *str, int *i, int *len)
+{
+	char	*var_name;
+
+	while (str[*i + *len] && (ft_isalnum(str[*i + *len]) || str[*i + *len] == '_'))
+		(*len)++;
+	if (*len == 0)
+		return (NULL);
+	var_name = malloc(sizeof(char) * (*len + 1));
+	if (!var_name)
+		return (NULL);
+	*i = 1;
+	*len = 0;
+	while (str[*i] && (ft_isalnum(str[*i]) || str[*i] == '_'))
+		var_name[(*len)++] = str[(*i)++];
+	var_name[*len] = '\0';
+	return (var_name);
+}
+
 char	*get_var_name(char *str)
 {
-    int     i;
-    int     len;
-    char    *var_name;
+	int	i;
+	int	len;
 
-    i = 1;
-    len = 0;
-
-    // Handle $? case
-    if (str[i] == '?')
-        return ft_strdup("?");
-    
-    // Handle $$ case
-    if (str[i] == '$')
-        return ft_strdup("$");
-
-    // Handle ${VAR} case
-    if (str[i] == '{')
-    {
-        i++;
-        while (str[i + len] && str[i + len] != '}')
-            len++;
-        if (str[i + len] != '}')
-            return NULL;
-        var_name = malloc(sizeof(char) * (len + 1));
-        if (!var_name)
-            return NULL;
-        len = 0;
-        while (str[i] && str[i] != '}')
-            var_name[len++] = str[i++];
-        var_name[len] = '\0';
-        return var_name;
-    }
-
-    // Handle regular $VAR case
-    while (str[i + len] && (ft_isalnum(str[i + len]) || str[i + len] == '_'))
-        len++;
-    
-    if (len == 0)
-        return NULL;
-    
-    var_name = malloc(sizeof(char) * (len + 1));
-    if (!var_name)
-        return NULL;
-    
-    i = 1;
-    len = 0;
-    while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
-        var_name[len++] = str[i++];
-    var_name[len] = '\0';
-    
-    return var_name;
+	i = 1;
+	len = 0;
+	if (str[i] == '?')
+		return (ft_strdup("?"));
+	if (str[i] == '$')
+		return (ft_strdup("$"));
+	if (str[i] == '{')
+		return (get_braced_var_name(str, &i, &len));
+	return (get_regular_var_name(str, &i, &len));
 }
 
 char	*get_var_value(char *var_name, char **env, int status)
@@ -154,7 +141,6 @@ char	*get_var_value(char *var_name, char **env, int status)
     int     i;
     char    *value;
     char    *status_str;
-    pid_t   pid;
 
     if (!var_name)
         return ft_strdup("$");
@@ -167,9 +153,7 @@ char	*get_var_value(char *var_name, char **env, int status)
 
     if (!ft_strcmp(var_name, "$"))
     {
-        pid = getpid();
-        status_str = ft_itoa(pid);
-        return status_str;
+        return ft_strdup("$");
     }
 
     i = compare_var_env(var_name, env);
@@ -207,212 +191,274 @@ int	find_var_end(char *str)
     return i;
 }
 
+static char	*handle_single_quote(char *result, char *str, int *i, int heredoc)
+{
+	char	*tmp;
+	char	curr[2];
+
+	if (heredoc == 1)
+	{
+		(*i)++;
+		return (result);
+	}
+	curr[0] = str[*i];
+	curr[1] = '\0';
+	tmp = ft_strjoin(result, curr);
+	free(result);
+	(*i)++;
+	return (tmp);
+}
+
+static char	*handle_double_quote(char *result, char *str, int *i, int heredoc)
+{
+	char	*tmp;
+	char	curr[2];
+
+	if (heredoc == 1)
+	{
+		(*i)++;
+		return (result);
+	}
+	curr[0] = str[*i];
+	curr[1] = '\0';
+	tmp = ft_strjoin(result, curr);
+	free(result);
+	(*i)++;
+	return (tmp);
+}
+
+static char	*handle_double_dollar(char *result, int *i)
+{
+	char	*tmp;
+
+	tmp = ft_strjoin(result, "$$");
+	free(result);
+	(*i) += 2;
+	return (tmp);
+}
+
+static char	*process_single_quote_section(char *result, char *quoted_section)
+{
+	char	*tmp;
+
+	tmp = ft_strjoin(result, quoted_section);
+	free(result);
+	return (tmp);
+}
+
+static char	*process_double_quote_section(char *result, char *quoted_section,
+	char **env, int status)
+{
+	char	*expanded_section;
+	char	*tmp;
+
+	expanded_section = expand_string(quoted_section, env, status, 0);
+	tmp = ft_strjoin(result, expanded_section);
+	free(result);
+	free(expanded_section);
+	return (tmp);
+}
+
+static char	*handle_dollar_quote(char *result, char *str, int *i, char **env,
+	int status)
+{
+	char	quote_char;
+	int		j;
+	int		total_len;
+	char	*quoted_section;
+	char	*tmp;
+
+	quote_char = str[*i + 1];
+	j = *i + 2;
+	while (str[j] && str[j] != quote_char)
+		j++;
+	if (str[j] == quote_char)
+	{
+		total_len = j - *i + 1;
+		quoted_section = ft_substr(str, *i + 1, total_len - 1);
+		if (quote_char == '\'')
+			result = process_single_quote_section(result, quoted_section);
+		else
+			result = process_double_quote_section(result, quoted_section, env, status);
+		free(quoted_section);
+		*i = j + 1;
+		return (result);
+	}
+	else
+	{
+		tmp = ft_strjoin(result, "$");
+		free(result);
+		(*i)++;
+		return (tmp);
+	}
+}
+
+static char	*handle_exit_status(char *result, int *i, int status)
+{
+	char	*tmp;
+	char	*status_str;
+	int		real_status;
+
+	if (WIFEXITED(status))
+		real_status = WEXITSTATUS(status);
+	else
+		real_status = status;
+	status_str = ft_itoa(real_status);
+	tmp = ft_strjoin(result, status_str);
+	free(status_str);
+	free(result);
+	*i += 2;
+	return (tmp);
+}
+
+static char	*handle_braced_var(char *result, char *str, int *i, char **env,
+	int status)
+{
+	int		start;
+	int		j;
+	char	*var_name;
+	char	*var_value;
+	char	*tmp;
+
+	start = *i + 2;
+	j = start;
+	while (str[j] && str[j] != '}')
+		j++;
+	if (str[j] == '}' && j > start)
+	{
+		var_name = ft_substr(str, start, j - start);
+		var_value = get_var_value(var_name, env, status);
+		free(var_name);
+		if (var_value)
+		{
+			tmp = ft_strjoin(result, var_value);
+			free(result);
+			result = tmp;
+			free(var_value);
+		}
+		*i = j + 1;
+		return (result);
+	}
+	else
+	{
+		tmp = ft_strjoin(result, "$");
+		free(result);
+		(*i)++;
+		return (tmp);
+	}
+}
+
+static char	*handle_regular_var(char *result, char *str, int *i, char **env,
+	int status)
+{
+	int		start;
+	int		len;
+	char	*var_name;
+	char	*var_value;
+	char	*tmp;
+
+	start = *i + 1;
+	(*i)++;
+	while (str[*i] && (ft_isalnum(str[*i]) || str[*i] == '_'))
+		(*i)++;
+	len = *i - start;
+	var_name = ft_substr(str, start, len);
+	var_value = get_var_value(var_name, env, status);
+	free(var_name);
+	if (var_value)
+	{
+		tmp = ft_strjoin(result, var_value);
+		free(result);
+		result = tmp;
+		free(var_value);
+	}
+	return (result);
+}
+
+static char	*handle_literal_dollar(char *result, int *i)
+{
+	char	*tmp;
+
+	tmp = ft_strjoin(result, "$");
+	free(result);
+	(*i)++;
+	return (tmp);
+}
+
+static char	*handle_regular_char(char *result, char *str, int *i)
+{
+	char	*tmp;
+	char	curr[2];
+
+	curr[0] = str[*i];
+	curr[1] = '\0';
+	tmp = ft_strjoin(result, curr);
+	free(result);
+	(*i)++;
+	return (tmp);
+}
+
+static char	*handle_dollar_cases(char *result, char *str, int *i, char **env,
+	int status, int *doll)
+{
+	if (str[*i + 1] == '$')
+	{
+		result = handle_double_dollar(result, i);
+		return (result);
+	}
+	if (str[*i + 1] == '\'' || str[*i + 1] == '"')
+		return (handle_dollar_quote(result, str, i, env, status));
+	if (str[*i + 1] == '?')
+		return (handle_exit_status(result, i, status));
+	if (str[*i + 1] == '{')
+		return (handle_braced_var(result, str, i, env, status));
+	if (ft_isalpha(str[*i + 1]) || str[*i + 1] == '_')
+		return (handle_regular_var(result, str, i, env, status));
+	return (handle_literal_dollar(result, i));
+}
+
+static char	*process_character(char *result, char *str, int *i, char **env,
+	int status, int *doll, int *in_single_quote, int *in_double_quote,
+	int heredoc)
+{
+	if (str[*i] == '\'' && !*in_double_quote)
+	{
+		*in_single_quote = !*in_single_quote;
+		return (handle_single_quote(result, str, i, heredoc));
+	}
+	if (str[*i] == '"' && !*in_single_quote)
+	{
+		*in_double_quote = !*in_double_quote;
+		return (handle_double_quote(result, str, i, heredoc));
+	}
+	if (str[*i] == '$' && (heredoc == 1 || !*in_single_quote))
+		return (handle_dollar_cases(result, str, i, env, status, doll));
+	return (handle_regular_char(result, str, i));
+}
+
 char *expand_string(char *str, char **env, int status, int heredoc)
 {
-    char    *result;
-    char    *tmp;
-    int     i;
-    int     real_status;
-    int     in_single_quote;
-    int     in_double_quote;
-    int     doll = 0;
+	char	*result;
+	int		i;
+	int		in_single_quote;
+	int		in_double_quote;
+	int		doll;
 
-    if (!str)
-        return (NULL);
-    
-    result = ft_strdup("");
-    if (!result)
-        return (NULL);
-
-    i = 0;
-    in_single_quote = 0;
-    in_double_quote = 0;
-    
-    while (str[i])
-    {
-        // Handle quote state changes (but don't strip quotes unless heredoc mode)
-        if (str[i] == '\'' && !in_double_quote)
-        {
-            in_single_quote = !in_single_quote;
-            if (heredoc == 1) // In heredoc mode, skip quotes entirely
-            {
-                i++;
-                continue;
-            }
-            // In normal mode, include the quote character
-            char curr[2] = {str[i], '\0'};
-            tmp = ft_strjoin(result, curr);
-            free(result);
-            result = tmp;
-            i++;
-            continue;
-        }
-        if (str[i] == '"' && !in_single_quote)
-        {
-            in_double_quote = !in_double_quote;
-            if (heredoc == 1) // In heredoc mode, skip quotes entirely
-            {
-                i++;
-                continue;
-            }
-            // In normal mode, include the quote character
-            char curr[2] = {str[i], '\0'};
-            tmp = ft_strjoin(result, curr);
-            free(result);
-            result = tmp;
-            i++;
-            continue;
-        }
-        // Handle variable expansion
-        // For heredoc: expand everything (ignore quotes)
-        // For normal: only expand if not in single quotes
-        if (str[i] == '$' && (heredoc == 1 || !in_single_quote))
-        {
-            if (str[i + 1] == '$' )
-            {
-                // printf("str == %s\n", str);
-                str = expand_dollars(str);
-                doll = 1;
-                // printf("str == %s\n", str);
-                // printf("res == %s\n", result);
-                continue;
-            }
-            // Replace the problematic section with this:
-            if (str[i + 1] == '\'' || str[i + 1] == '"')
-            {
-                char quote_char = str[i + 1];
-                int j = i + 2; // Start after 
-                
-                // Find the closing quote
-                while (str[j] && str[j] != quote_char)
-                    j++;
-                
-                if (str[j] == quote_char) // Found closing quote
-                {
-                    // Extract the entire quoted section including quotes: content' or $"content"
-                    int total_len = j - i + 1; // from $ to closing quote
-                    char *quoted_section = ft_substr(str, i + 1, total_len - 1); // Skip the $, keep quotes
-                    
-                    if (quote_char == '\'') 
-                    {
-                        // For ...', keep quotes and treat content as literal
-                        tmp = ft_strjoin(result, quoted_section);
-                        free(result);
-                        result = tmp;
-                    }
-                    else // quote_char == '"'
-                    {
-                        // For $"...", keep quotes but expand variables inside
-                        char *expanded_section = expand_string(quoted_section, env, status, 0);
-                        tmp = ft_strjoin(result, expanded_section);
-                        free(result);
-                        result = tmp;
-                        free(expanded_section);
-                    }
-                    
-                    free(quoted_section);
-                    i = j + 1; // Move past the closing quote
-                    continue;
-                }
-                else
-                {
-                    // No closing quote found, treat as literal $ + quote
-                    char curr[2] = {'$', '\0'};
-                    tmp = ft_strjoin(result, curr);
-                    free(result);
-                    result = tmp;
-                    i++;
-                    continue;
-                }
-            }
-            if (str[i + 1] == '?')
-            {
-                if (WIFEXITED(status))
-                    real_status = WEXITSTATUS(status);
-                else
-                    real_status = status;
-                char *status_str = ft_itoa(real_status);
-                tmp = ft_strjoin(result, status_str);
-                free(status_str);
-                free(result);
-                result = tmp;
-                i += 2;
-                continue;
-            }
-            // Handle ${VAR}
-            if (str[i + 1] == '{')
-            {
-                int start = i + 2;
-                int j = start;
-                while (str[j] && str[j] != '}')
-                    j++;
-                if (str[j] == '}' && j > start) // require at least one char
-                {
-                    char *var_name = ft_substr(str, start, j - start);
-                    char *var_value = get_var_value(var_name, env, status);
-                    free(var_name);
-                    if (var_value)
-                    {
-                        tmp = ft_strjoin(result, var_value);
-                        free(result);
-                        result = tmp;
-                        free(var_value);
-                    }
-                    i = j + 1; // move past the }
-                    continue;
-                }
-                else
-                {
-                    // Invalid ${, treat as literal '$'
-                    char curr[2] = {'$', '\0'};
-                    tmp = ft_strjoin(result, curr);
-                    free(result);
-                    result = tmp;
-                    i++;
-                    continue;
-                }
-            }
-            // Handle regular variable: [a-zA-Z_][a-zA-Z0-9_]*
-            if (ft_isalpha(str[i + 1]) || str[i + 1] == '_')
-            {
-                int start = i + 1;
-                i++; // move to first char of var name
-                while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
-                    i++;
-                int len = i - start;
-                char *var_name = ft_substr(str, start, len);
-                char *var_value = get_var_value(var_name, env, status);
-                free(var_name);
-                if (var_value)
-                {
-                    tmp = ft_strjoin(result, var_value);
-                    free(result);
-                    result = tmp;
-                    free(var_value);
-                }
-                continue;
-            }
-            // Single $ without valid variable name
-            char curr[2] = {'$', '\0'};
-            tmp = ft_strjoin(result, curr);
-            free(result);
-            result = tmp;
-            i++;
-        }
-        else
-        {
-            // Regular character (including $ inside single quotes)
-            char curr[2] = {str[i], '\0'};
-            tmp = ft_strjoin(result, curr);
-            free(result);
-            result = tmp;
-            i++;
-        }
-        // printf("res == %s\n", result);
-    }
-    if (doll)
-        free(str);
-    return result;
+	if (!str)
+		return (NULL);
+	result = ft_strdup("");
+	if (!result)
+		return (NULL);
+	i = 0;
+	in_single_quote = 0;
+	in_double_quote = 0;
+	doll = 0; // Keeping this for compatibility with function signature
+	while (str[i])
+	{
+		result = process_character(result, str, &i, env, status, &doll,
+				&in_single_quote, &in_double_quote, heredoc);
+	}
+	return (result);
 }
 
 char	**expand(char **argv, char **env, int status)
@@ -420,7 +466,6 @@ char	**expand(char **argv, char **env, int status)
 	int		i;
 	int		len;
 	char	**expanded;
-	char	*temp;
 
 	if (!argv || !argv[0])
 		return (NULL);

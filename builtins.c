@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 17:21:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/24 18:10:20 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/31 18:38:45 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,7 +102,7 @@ int no_args()
     write(STDOUT_FILENO, "\n", 1);
     return (0);
 }
-int ft_echo(char **argv, char ***env, int status)
+int ft_echo(char **argv, char ***env, int *exit_status)
 {
     int i;
     int n_flag;
@@ -382,20 +382,39 @@ int ft_pwd(char **argv)
 int is_valid_identifier(char *str)
 {
     int i;
-    int flag_eq;
+    int equal_pos;
 
     i = 0;
-    flag_eq = 0;
+    equal_pos = -1;
     if (!str || !*str)
         return (0);
+    
+    // Find the position of '=' or '+=' if it exists
+    while (str[i] && str[i] != '=')
+    {
+        if (str[i] == '+' && str[i + 1] == '=')
+        {
+            equal_pos = i;  // Position of '+' in '+='
+            break;
+        }
+        i++;
+    }
+    if (str[i] == '=' && equal_pos == -1)
+        equal_pos = i;
+    
+    // Check the variable name part (before '=' or '+=' or entire string if neither exists)
+    i = 0;
+    
+    // First character must be a letter or underscore
     if (!ft_isalpha(str[i]) && str[i] != '_')
         return (0);
     i++;
-    while (str[i])
+    
+    // Subsequent characters must be letters, digits, or underscores
+    // Stop at '+=' or '=' whichever comes first
+    while (str[i] && (equal_pos == -1 || i < equal_pos))
     {
-        if (str[i] == '=')
-            flag_eq = 1;
-        if (flag_eq == 0 && str[i] == '-')
+        if (!ft_isalnum(str[i]) && str[i] != '_')
             return (0);
         i++;
     }
@@ -865,7 +884,7 @@ void	add_or_update_env(char *var, char ***env)
 		handle_regular_assignment(var, env, len);
 }
 
-void	add_var(char **argv, char ***env, char ***exported)
+void	add_var(char **argv, char ***env, char ***exported, int *exit_status)
 {
 	int	i;
 
@@ -875,7 +894,7 @@ void	add_var(char **argv, char ***env, char ***exported)
 		if (!is_valid_identifier(argv[i]))
 		{
 			ft_putstr_fd("minishell: export: not a valid identifier\n", 2);
-			exit_status = 1;
+			*exit_status = 1;
 		}
 		else
 		{
@@ -886,7 +905,7 @@ void	add_var(char **argv, char ***env, char ***exported)
 			}
 			else
 				add_or_update_exported(argv[i], exported);
-			exit_status = 0;
+			*exit_status = 0;
 		}
 		i++;
 	}
@@ -918,7 +937,7 @@ static void	free_copy_array(char **copy)
 	free(copy);
 }
 
-int	ft_export(char **argv, char ***env, char ***exported)
+int	ft_export(char **argv, char ***env, char ***exported, int *exit_status)
 {
 	char	**copy;
 
@@ -933,8 +952,8 @@ int	ft_export(char **argv, char ***env, char ***exported)
 	}
 	else
 	{
-		add_var(argv, env, exported);
-		return (exit_status);
+		add_var(argv, env, exported, exit_status);
+		return (*exit_status);
 	}
 	return (EXIT_FAILURE);
 }
@@ -1029,12 +1048,12 @@ int ret_ex_code(char **argv)
         exit_code = 0;
     return(exit_code);
 }
-void    clean_exit(t_tree *root, char **env, char **exported, t_fd *fd)
+void    clean_exit(t_tree *root, char **env, char **exported, t_fd *fd, int exit_status)
 {
         free_mem(root, env, exported, fd);
-        exit (exit_status);    
+        exit(exit_status);    
 }
-int    ft_exit(t_tree *root, char **env, char **exported, t_fd *fd)
+int    ft_exit(t_tree *root, char **env, char **exported, t_fd *fd, int *exit_status)
 {
     int i;
     int exit_code;
@@ -1044,7 +1063,7 @@ int    ft_exit(t_tree *root, char **env, char **exported, t_fd *fd)
     i = 0;
     clear_history();
     if (!argv[1])
-        clean_exit(root, env, exported, fd);
+        clean_exit(root, env, exported, fd, *exit_status);
     while (argv[1][i])
     {
         if ((argv[1][i] < '0' || argv[1][i] > '9') && argv[1][i] != '+' && argv[1][i] != '-')
@@ -1062,25 +1081,25 @@ int    ft_exit(t_tree *root, char **env, char **exported, t_fd *fd)
     exit (exit_code & 0xFF);
 }
 
-int handle_builtins(t_tree *root, t_fd *fd, char ***env, char ***exported, int status)
+int handle_builtins(t_tree *root, t_fd *fd, char ***env, char ***exported, int *exit_status)
 {
     int exit_code;
 
-    exit_code = status;
+    exit_code = *exit_status;
     if (!ft_strcmp(root->command[0], "echo"))
-        exit_code = ft_echo(root->command, env, status);
+        exit_code = ft_echo(root->command, env, exit_status);
     else if (!ft_strcmp(root->command[0], "cd"))
         exit_code = ft_cd(root->command, env);
     else if (!ft_strcmp(root->command[0], "pwd"))
         exit_code = ft_pwd(root->command);
     else if (!ft_strcmp(root->command[0], "export"))
-        exit_code = ft_export(root->command,env, exported);
+        exit_code = ft_export(root->command,env, exported, exit_status);
     else if (!ft_strcmp(root->command[0], "unset"))
         exit_code = ft_unset(root->command, env, exported);
     else if (!ft_strcmp(root->command[0], "env"))
         exit_code = ft_env(root->command, env[0]);
     else if (!ft_strcmp(root->command[0], "exit"))
-        exit_code = ft_exit(root, *env, *exported, fd);
+        exit_code = ft_exit(root, *env, *exported, fd, exit_status);
     return (exit_code);
     
 }

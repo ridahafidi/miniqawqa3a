@@ -1,0 +1,27 @@
+$
+build_tree.c
+builtins.c
+exec_utils.c
+execution.c
+expand.c
+file.sup
+free_tree.c
+g
+insert_spaces.c
+leak_tests.sh
+libft
+libft.a
+main.c
+minishell
+minishell.h
+minishell_tester
+need to fix
+parse_tokens.c
+parsing.h
+redirections.c
+redirections_parsing.c
+signals.c
+syntax_error.c
+syntax_error_utils.c
+tokenize.c
+x

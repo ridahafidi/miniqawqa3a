@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:17:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/25 16:13:53 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/31 17:37:57 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,13 +206,15 @@ static char	*handle_relative_path(t_tree *root, char **env, char **exported, int
 
 static char	*get_command_path(t_tree *root, char **env, char **exported, int i)
 {
+	if (handle_dot_command(root, env, exported, i))
+		return (NULL);
 	if (ft_strchr(root->command[i], '/') || root->command[i][0] == '.')
 		return (handle_absolute_path(root, env, exported, i));
 	else
 		return (handle_relative_path(root, env, exported, i));
 }
 
-void	execute_command(t_tree *root, t_fd *fd, char **env, char **exported)
+void	execute_command(t_tree *root, t_fd *fd, char **env, char **exported, int *exit_status)
 {
 	char	*path;
 	int		i;
