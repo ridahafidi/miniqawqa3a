@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:27:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/31 19:32:45 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/07/31 19:35:25 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,30 +140,18 @@ char    **handle_env_i()
     return (my_env);
 }
 
-static char	**add_shlvl_to_env(char ***env)
+static void	update_shlvl_value(char ***env, int i)
 {
-	char	**new_env;
-	char	*shlvl_str;
-	int		env_len;
-	int		i;
+	char	*new_shlvl;
+	char	*val;
+	int		new_val;
 
-	env_len = 0;
-	while (env[0][env_len])
-		env_len++;
-	new_env = malloc(sizeof(char *) * (env_len + 2));
-	if (!new_env)
-		return (NULL);
-	i = 0;
-	while (i < env_len)
-	{
-		new_env[i] = ft_strdup(env[0][i]);
-		i++;
-	}
-	shlvl_str = ft_strdup("SHLVL=1");
-	new_env[i] = shlvl_str;
-	new_env[i + 1] = NULL;
-	free_array(env[0]);
-	return (new_env);
+	new_val = ft_atoi(&env[0][i][ft_strlen("SHLVL") + 1]);
+	new_val++;
+	val = ft_itoa(new_val);
+	new_shlvl = ft_strjoin("SHLVL=", val);
+	(free(val), free(env[0][i]));
+	env[0][i] = new_shlvl;
 }
 
 void    update_shlvl(char ***env)
@@ -178,11 +166,11 @@ void    update_shlvl(char ***env)
 		if (!strncmp("SHLVL", env[0][i], ft_strlen("SHLVL") - 1) 
 			&& env[0][i][ft_strlen("SHLVL")] == '=')
 		{
+			update_shlvl_value(env, i);
 			return ;
 		}
 		i++;
 	}
-	env[0] = add_shlvl_to_env(env);
 }
 
 int main(int ac, char **av, char **env) 
