@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 15:23:36 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/31 18:45:05 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/01 22:06:01 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,18 +49,26 @@ typedef struct s_fd
     int out;
 }   t_fd;
 
-void    execute_command(t_tree *root, t_fd *fd, char **env, char **exported, int *exit_status);
+typedef struct s_data
+{
+    char ***env;
+    char ***exported;
+    t_fd *fds;
+    t_pid *pid;
+}   t_data;
+
+void    execute_command(t_tree *root, t_data *data, int *exit_status);
 void    free_tree(t_tree **root);
-t_tree *handle_redirections(t_tree *root, int *in, int *out, char **env, int *exit_status);
+t_tree *handle_redirections(t_tree *root, t_data *data, int *exit_status);
 int     is_builtin(char *cmd);
 void rdirectin_out(int in, int out);
-int handle_builtins(t_tree *root, t_fd *fd, char ***env, char ***exported, int *exit_status);
-void    execution(t_tree *root, t_fd *fd, char ***env, char ***exported, int *exit_status);
+int handle_builtins(t_tree *root, t_data *data, int *exit_status);
+void    execution(t_tree *root, t_data *data, int *exit_status);
 void    free_array(char **str);
 char    **copy_env(char **env);
 int ft_strcmp(char *s1, char *s2);
 void reset_signals_for_child(void);
-int    initialize(t_tree *root, t_fd *fd, char ***env, char ***exported, int *exit_status);
+int    initialize(t_tree *root, t_data *data, int *exit_status);
 void	sigint_handler(int sig);
 void	ctrl_d_handle(int sig, int exit_status);
 void	heredoc_sigint_handler(int sig);
@@ -73,9 +81,36 @@ int     compare_var_env(char *arg, char **env);
 void strip_quotes_from_tokens(char **tokens, int skip_heredoc_delimiter);
 int	handle_dot_command(t_tree *root, char **env, char **exported, int i);
 int    is_only_spaces(char *str);
-
-// Function prototypes for builtins
 int	ft_export(char **argv, char ***env, char ***exported, int *exit_status);
 void add_var(char **argv, char ***env, char ***exported, int *exit_status);
-
+void    print_format(char **export);
+void    sort_export(char **export);
+void    add_or_update_exported(char *var, char ***exported);
+int    is_valid_identifier(char *str);
+void    handle_regular_assignment(char *var, char ***env, int len);
+void    handle_append_env(char *var, char ***env, int len, int var_name_len);
+int    check_append_operation(char *var);
+int    handle_append_exported(char *var, char ***exported, int len);
+int    is_in_exported(char *var, char **exported);
+void    ft_swap(char **export, int i, int j);
+char    *build_append_var(char *var, int var_name_len);
+void    free_mem(t_tree *root, t_fd *fd, t_data *data);
+int    ret_ex_code(char **argv);
+int    many_args(void);
+void    exit_error(char **argv);
+void	clean_exit(t_tree *root, t_data *data, int exit_status);
+void    ft_swap_ptr(char ***arr, int i, int j);
+int    validate_and_get_path(char **argv, char **path);
+void    update_env(char ***env, char *new_cwd, char *cwd);
+int    handle_directory_change(char *path, char ***env, char *cwd);
+char    *ft_getenv(char **env, const char *name);
+int    count_arguments(char **argv);
+void    print_cd_error(char *path, int error_type);
+int    check_dir_x(struct stat *file_stat, char *path);
+int    ft_exit(t_tree *root, t_data *data, int *exit_status);
+int    ft_env(char **argv, char **env);
+int    ft_unset(char **argv, char ***env, char ***exported);
+int ft_pwd(char **argv);
+int    ft_echo(char **argv, char ***env, int *exit_status);
+int    ft_cd(char **argv, char ***env);
 #endif

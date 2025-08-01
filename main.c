@@ -6,63 +6,76 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:27:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/31 19:32:45 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/01 19:59:31 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 
-static int	handle_tokenization_error(t_fd *fds, int *exit_status)
+static int	handle_tokenization_error(t_fd *fds, t_data *data, int *exit_status)
 {
 	free(fds);
+	free(data);
 	*exit_status = 2;
 	return (0);
 }
 
-static int	execute_ast(t_tree *ast, char **tokens, t_fd *fds, char ***env, 
-	char ***exported, int *exit_status)
+static int	execute_ast(t_tree *ast, char **tokens, t_data *data, int *exit_status)
 {
 	free_array(tokens);
-	*exit_status = initialize(ast, fds, env, exported, exit_status);
+	*exit_status = initialize(ast, data , exit_status);
 	free_tree(&ast);
 	return (0);
 }
 
-static int	handle_parsing_error(char **tokens, int *exit_status)
+static int	handle_parsing_error(char **tokens, t_data *data, int *exit_status)
 {
 	if (tokens)
 	{
 		free_array(tokens);
 		*exit_status = 2;
 	}
+	if (data->fds)
+		free(data->fds);
+	if (data)
+		free(data);
 	return (0);
 }
 
 int process_cmd(char *input, char ***env, char ***exported, int *exit_status)
 {
-	t_fd	*fds;
 	char	**tokens;
 	t_tree	*ast;
+	t_data	*data;
 
-	fds = malloc(sizeof(t_fd));
-	if (!fds)
+	data = malloc(sizeof(t_data));
+	data->fds = malloc(sizeof(t_fd));
+	if (!data->fds || !data)
 	{
 		perror("Memory allocation failed");
 		*exit_status = EXIT_FAILURE;
 		return (EXIT_FAILURE);
 	}
-	fds->in = STDIN_FILENO;
-	fds->out = STDOUT_FILENO;
+	data->fds->in = STDIN_FILENO;
+	data->fds->out = STDOUT_FILENO;
 	tokens = tokenize_input(input, *env, *exit_status);
 	if (!tokens)
-		return (handle_tokenization_error(fds, exit_status));
+		return (handle_tokenization_error(data->fds, data, exit_status));
 	ast = parse_tokens(tokens);
+	data->env = env;
+	data->exported = exported;
 	if (ast)
-		execute_ast(ast, tokens, fds, env, exported, exit_status);
+	{
+		execute_ast(ast, tokens, data, exit_status);
+	}
 	else
-		handle_parsing_error(tokens, exit_status);
-	free(fds);
+		return handle_parsing_error(tokens, data, exit_status);
+	// Cleanup after successful execution
+	if (data->fds)
+		free(data->fds);
+	if (data)
+		free(data);
 	return (0);
 }
 
@@ -140,30 +153,18 @@ char    **handle_env_i()
     return (my_env);
 }
 
-static char	**add_shlvl_to_env(char ***env)
+static void	update_shlvl_value(char ***env, int i)
 {
-	char	**new_env;
-	char	*shlvl_str;
-	int		env_len;
-	int		i;
+	char	*new_shlvl;
+	char	*val;
+	int		new_val;
 
-	env_len = 0;
-	while (env[0][env_len])
-		env_len++;
-	new_env = malloc(sizeof(char *) * (env_len + 2));
-	if (!new_env)
-		return (NULL);
-	i = 0;
-	while (i < env_len)
-	{
-		new_env[i] = ft_strdup(env[0][i]);
-		i++;
-	}
-	shlvl_str = ft_strdup("SHLVL=1");
-	new_env[i] = shlvl_str;
-	new_env[i + 1] = NULL;
-	free_array(env[0]);
-	return (new_env);
+	new_val = ft_atoi(&env[0][i][ft_strlen("SHLVL") + 1]);
+	new_val++;
+	val = ft_itoa(new_val);
+	new_shlvl = ft_strjoin("SHLVL=", val);
+	(free(val), free(env[0][i]));
+	env[0][i] = new_shlvl;
 }
 
 void    update_shlvl(char ***env)
@@ -178,11 +179,11 @@ void    update_shlvl(char ***env)
 		if (!strncmp("SHLVL", env[0][i], ft_strlen("SHLVL") - 1) 
 			&& env[0][i][ft_strlen("SHLVL")] == '=')
 		{
+			update_shlvl_value(env, i);
 			return ;
 		}
 		i++;
 	}
-	env[0] = add_shlvl_to_env(env);
 }
 
 int main(int ac, char **av, char **env) 

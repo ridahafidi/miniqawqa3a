@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:17:18 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/07/31 17:37:57 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/01 22:00:44 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ int is_directory(const char *path)
 }
 
 
-static void	handle_execution_error(t_tree *root, char *path, char **env,
+ void	handle_execution_error(t_tree *root, char *path, char **env,
 	char **exported)
 {
 	if (path != root->command[0])
@@ -107,7 +107,7 @@ static void	handle_execution_error(t_tree *root, char *path, char **env,
 	free_tree(&root);
 }
 
-static void	handle_path_errors(t_tree *root, char **env, char **exported, int i)
+ void	handle_path_errors(t_tree *root, char **env, char **exported, int i)
 {
 	free_array(env);
 	free_array(exported);
@@ -123,7 +123,7 @@ static void	handle_path_errors(t_tree *root, char **env, char **exported, int i)
 	free_tree(&root);
 }
 
-static void	handle_command_not_found(t_tree *root, char **env, char **exported,
+ void	handle_command_not_found(t_tree *root, char **env, char **exported,
 	int i)
 {
 	free_array(env);
@@ -135,7 +135,7 @@ static void	handle_command_not_found(t_tree *root, char **env, char **exported,
 	free_tree(&root);
 }
 
-static void	handle_execve_error(t_tree *root, char *path, char **env,
+ void	handle_execve_error(t_tree *root, char *path, char **env,
 	char **exported)
 {
 	int	i;
@@ -165,7 +165,7 @@ static void	handle_execve_error(t_tree *root, char *path, char **env,
 		exit(EXIT_FAILURE);
 }
 
-static char	*handle_absolute_path(t_tree *root, char **env, char **exported, int i)
+ char	*handle_absolute_path(t_tree *root, char **env, char **exported, int i)
 {
 	if (access(root->command[i], F_OK) == -1)
 	{
@@ -185,7 +185,7 @@ static char	*handle_absolute_path(t_tree *root, char **env, char **exported, int
 	return (root->command[i]);
 }
 
-static char	*handle_relative_path(t_tree *root, char **env, char **exported, int i)
+ char	*handle_relative_path(t_tree *root, char **env, char **exported, int i)
 {
 	char	*path;
 
@@ -204,7 +204,7 @@ static char	*handle_relative_path(t_tree *root, char **env, char **exported, int
 	return (path);
 }
 
-static char	*get_command_path(t_tree *root, char **env, char **exported, int i)
+ char	*get_command_path(t_tree *root, char **env, char **exported, int i)
 {
 	if (handle_dot_command(root, env, exported, i))
 		return (NULL);
@@ -214,14 +214,18 @@ static char	*get_command_path(t_tree *root, char **env, char **exported, int i)
 		return (handle_relative_path(root, env, exported, i));
 }
 
-void	execute_command(t_tree *root, t_fd *fd, char **env, char **exported, int *exit_status)
+void	execute_command(t_tree *root, t_data *data, int *exit_status)
 {
 	char	*path;
 	int		i;
+	char	**env;
+	char	**exported;
 
 	i = 0;
-	if (fd)
-		free(fd);
+	if (data->fds)
+		free(data->fds);
+	env = data->env[0];
+	exported = data->exported[0];
 	while (root->command[i] && root->command[i][0] == '\0')
 		i++;
 	if (!root->command[i])
@@ -229,10 +233,12 @@ void	execute_command(t_tree *root, t_fd *fd, char **env, char **exported, int *e
 		free_array(env);
 		free_array(exported);
 		free_tree(&root);
+		free(data);
 		clear_history();
 		exit(EXIT_SUCCESS);
 	}
 	path = get_command_path(root, env, exported, i);
+	free(data);
 	if (execve(path, &root->command[i], env) == -1)
 		handle_execve_error(root, path, env, exported);
 }
