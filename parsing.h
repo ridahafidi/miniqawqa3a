@@ -43,7 +43,7 @@ typedef struct s_segment
 	struct s_segment	*next;
 }						t_segment;
 
-typedef enum type
+typedef enum t_type
 {
 	COMMAND,
 	LESS,
@@ -51,7 +51,7 @@ typedef enum type
 	APPEND,
 	PIPE,
 	HEREDOC,
-}						type;
+}						t_type;
 
 typedef struct s_token_params
 {
@@ -65,7 +65,7 @@ typedef struct s_tree
 	struct s_tree		*right;
 	char				*file_name;
 	char				**command;
-	type				type;
+	t_type				type;
 }						t_tree;
 
 typedef struct s_token_data
@@ -124,7 +124,7 @@ int						process_length_calculation(char *input, int i, int len,
 							char quote);
 
 int						is_redirections(char *tokens);
-t_tree					*create_redirections(char *operator, char * file_name);
+t_tree					*create_redirections(char *operator, char *file_name);
 t_tree					*parse_tokens(char **tokens);
 void					ft_print_tree(t_tree *root);
 int						initialize_end_index(char **tokens, int end);

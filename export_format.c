@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   export_format.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yel-qori <yel-qori@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/31 20:40:04 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/31 20:40:35 by yel-qori         ###   ########.fr       */
+/*   Updated: 2025/08/02 20:22:40 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@ char	*copy_var(char **export, int i)
 {
 	char	*variable_name;
 	int		len;
-	int		j;
 
 	len = 0;
 	while (export[i][len])

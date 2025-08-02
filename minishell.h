@@ -6,12 +6,24 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 15:23:36 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 18:50:40 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 20:30:17 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MINISHELL_H
 # define MINISHELL_H
+
+# include <errno.h>
+# include <fcntl.h>
+# include <signal.h>
+# include <stdio.h>
+# include <stdlib.h>
+# include <sys/stat.h>
+# include <sys/types.h>
+# include <sys/wait.h>
+# include <unistd.h>
+# include "libft/libft.h"
+# include "parsing.h"
 
 # define EXIT_SUCCESS 0
 # define EXIT_FAILURE 1
@@ -22,20 +34,8 @@
 # define EXIT_SIGINT_CODE 130
 # define EXIT_SIGQUIT_CODE 131
 
-# include <signal.h>
-# include <unistd.h>
-
 // Global variable for signal handling - only stores signal number
 extern int	g_signum;
-# include "libft/libft.h"
-# include "parsing.h"
-# include <errno.h>
-# include <fcntl.h>
-# include <stdio.h>
-# include <stdlib.h>
-# include <sys/stat.h>
-# include <sys/types.h>
-# include <sys/wait.h>
 
 typedef struct s_pid
 {
@@ -76,8 +76,8 @@ typedef struct s_dollar_context
 	int		*doll;
 }			t_dollar_context;
 
-void	check_path(char *path);
-char	*ret_braces (char *result, char *var_value);
+void		check_path(char *path);
+char		*ret_braces(char *result, char *var_value);
 char		*ret_handle_dollar(char *result, int *i);
 int			handle_heredoc(char *delimiter, char **env);
 t_tree		*check_ambiguous_redirection(t_tree *root, t_tree *cmd,
@@ -106,7 +106,7 @@ int			handle_tokenization_error(t_fd *fds, t_data *data,
 				int *exit_status);
 int			handle_parsing_error(char **tokens, t_data *data, int *exit_status);
 char		**handle_env_i(void);
-void		execute_command(t_tree *root, t_data *data, int *exit_status);
+void		execute_command(t_tree *root, t_data *data);
 void		free_tree(t_tree **root);
 t_tree		*handle_redirections(t_tree *root, t_data *data, int *exit_status);
 int			is_builtin(char *cmd);
@@ -155,7 +155,7 @@ void		clean_exit(t_tree *root, t_data *data, int exit_status);
 void		ft_swap_ptr(char ***arr, int i, int j);
 int			validate_and_get_path(char **argv, char **path);
 void		update_env(char ***env, char *new_cwd, char *cwd);
-int			handle_directory_change(char *path, char ***env, char *cwd);
+int			handle_directory_change(char *path, char ***env);
 char		*ft_getenv(char **env, const char *name);
 int			count_arguments(char **argv);
 void		print_cd_error(char *path, int error_type);
@@ -165,10 +165,9 @@ int			ft_exit(t_tree *root, t_data *data, int *exit_status);
 int			ft_env(char **argv, char **env);
 char		*get_path(char *cmd, char **env);
 int			ft_unset(char **argv, char ***env, char ***exported);
-int			ft_pwd(char **argv);
-int			ft_echo(char **argv, char ***env, int *exit_status);
+int			ft_pwd(void);
+int			ft_echo(char **argv);
 int			ft_cd(char **argv, char ***env);
-
 char		*get_before_dollar(char *str, int dollar_index);
 void		process_dollar_sequence(char *str, char *result, int *i, int *ri);
 char		*expand_dollars(char *str);

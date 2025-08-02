@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   echo.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yel-qori <yel-qori@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/31 20:32:02 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/31 20:33:03 by yel-qori         ###   ########.fr       */
+/*   Updated: 2025/08/02 20:18:34 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ int	no_args(void)
 	return (0);
 }
 
-int	ft_echo(char **argv, char ***env, int *exit_status)
+int	ft_echo(char **argv)
 {
 	int	i;
 	int	n_flag;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_tokens.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yel-qori <yel-qori@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/18 14:52:23 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/25 16:25:10 by yel-qori         ###   ########.fr       */
+/*   Updated: 2025/08/02 20:22:47 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,6 @@ char	**collect_command_arguments(char **tokens, int start, int end)
 
 t_tree	*parse_token_subset(char **tokens, int start, int end)
 {
-	int		i;
 	t_tree	*cmd_node;
 	char	**cmd_args;
 

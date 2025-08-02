@@ -6,13 +6,13 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/31 20:34:32 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/08/02 19:16:36 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 20:16:56 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int	change_to_home(char ***env, char *cwd)
+int	change_to_home(char ***env)
 {
 	char		*path;
 	struct stat	file_stat;
@@ -39,7 +39,7 @@ int	change_to_home(char ***env, char *cwd)
 	return (0);
 }
 
-static int	change_to_oldpwd(char ***env, char *cwd)
+static int	change_to_oldpwd(char ***env)
 {
 	char		*path;
 	struct stat	file_stat;
@@ -93,12 +93,12 @@ static int	change_to_path(char *path)
 	return (0);
 }
 
-int	handle_directory_change(char *path, char ***env, char *cwd)
+int	handle_directory_change(char *path, char ***env)
 {
 	if (!path)
-		return (change_to_home(env, cwd));
+		return (change_to_home(env));
 	else if (!ft_strcmp(path, "-"))
-		return (change_to_oldpwd(env, cwd));
+		return (change_to_oldpwd(env));
 	else
 		return (change_to_path(path));
 }

@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 19:20:12 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 20:19:04 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ void	handle_child_process(t_tree *root, t_data *data)
 		free_tree(&root);
 		exit(EXIT_FAILURE);
 	}
-	execute_command(root, data, NULL);
+	execute_command(root, data);
 }
 
 void	handle_parent_process(int pid, int *exit_status)

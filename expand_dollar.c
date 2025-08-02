@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/02 17:15:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 19:15:41 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 20:19:29 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ char	*handle_dollar_quote(char *result, char *str, int *i,
 	int		j;
 	int		total_len;
 	char	*quoted_section;
-	char	*tmp;
 
 	quote_char = str[*i + 1];
 	j = *i + 2;
@@ -67,7 +66,6 @@ char	*handle_braced_var(char *result, char *str, int *i,
 	int		j;
 	char	*var_name;
 	char	*var_value;
-	char	*tmp;
 
 	start = *i + 2;
 	j = start;

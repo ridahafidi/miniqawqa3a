@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/31 20:41:14 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/08/02 19:19:57 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 20:22:33 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,6 @@ int	find_equal(char *str)
 int	indetical_variable(char ***env, char *var)
 {
 	int	j;
-	int	i;
 
 	j = 0;
 	while (env[0][j])

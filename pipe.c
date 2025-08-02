@@ -6,13 +6,13 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/02 15:38:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 19:21:00 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 20:23:41 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-void	close_wait(int *pfd, t_pid *pid, t_fd *fd, int *exit_status)
+void	close_wait(int *pfd, t_pid *pid, int *exit_status)
 {
 	int	status;
 
@@ -97,6 +97,6 @@ void	handle_pipe(t_data *data, t_tree *root, int *exit_status)
 	data->pid->right_pid = fork();
 	if (!data->pid->right_pid)
 		handle_right_pipe(root, data, pfd, exit_status);
-	close_wait(pfd, data->pid, data->fds, exit_status);
+	close_wait(pfd, data->pid, exit_status);
 	data->pid = saved_pid;
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cd_main.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yel-qori <yel-qori@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/31 20:36:59 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/31 20:37:43 by yel-qori         ###   ########.fr       */
+/*   Updated: 2025/08/02 20:17:33 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ static int	handle_cd_operation(char *path, char ***env, char *current_pwd)
 {
 	char	new_cwd[4096];
 
-	if (handle_directory_change(path, env, current_pwd) != 0)
+	if (handle_directory_change(path, env) != 0)
 		return (1);
 	if (getcwd(new_cwd, sizeof(new_cwd)) == NULL)
 	{

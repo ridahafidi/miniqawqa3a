@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/02 17:45:12 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 19:16:07 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 20:15:51 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ t_tree	*check_ambiguous_redirection(t_tree *root, t_tree *cmd,
 	return (cmd);
 }
 
-void	append(t_tree *root, int *in, int *out, int *exit_status)
+void	append(t_tree *root, int *out, int *exit_status)
 {
 	if (root->type == APPEND && root->file_name)
 	{
@@ -71,7 +71,7 @@ t_tree	*handle_append_heredoc(t_tree *root, t_data *data, int *exit_status)
 		return (NULL);
 	if (root->type == APPEND && root->file_name)
 	{
-		append(root, &data->fds->in, &data->fds->out, exit_status);
+		append(root, &data->fds->out, exit_status);
 		if (data->fds->in == -1 || data->fds->out == -1)
 			return (NULL);
 		return (cmd);
