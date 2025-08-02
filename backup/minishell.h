@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 15:23:36 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 16:31:47 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 16:48:08 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,18 @@ typedef struct s_data
     t_fd *fds;
     t_pid *pid;
 }   t_data;
+
+typedef struct s_expand_context
+{
+	char	**env;
+	int		status;
+	int		*doll;
+	int		*in_single_quote;
+	int		*in_double_quote;
+	int		heredoc;
+	char	*result;
+	int		*i;
+}	t_expand_context;
 
 void	handle_execve_error(t_tree *root, char *path, char **env, char **exported);
 void    update_shlvl(char ***env);

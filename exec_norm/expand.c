@@ -6,11 +6,11 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:32:41 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 15:46:03 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 16:50:58 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "expand.h"
 
 char    *get_before_dollar(char *str, int dollar_index)
 {
@@ -30,7 +30,7 @@ char    *get_before_dollar(char *str, int dollar_index)
     return (res);
 }
 
-static void	process_dollar_sequence(char *str, char *result, int *i, int *ri)
+void	process_dollar_sequence(char *str, char *result, int *i, int *ri)
 {
 	int	dollar_count;
 
@@ -80,7 +80,7 @@ int	check_for_dollar(char *str)
 	return (0);
 }
 
-static char	*get_braced_var_name(char *str, int *i, int *len)
+char	*get_braced_var_name(char *str, int *i, int *len)
 {
 	char	*var_name;
 
@@ -99,7 +99,7 @@ static char	*get_braced_var_name(char *str, int *i, int *len)
 	return (var_name);
 }
 
-static char	*get_regular_var_name(char *str, int *i, int *len)
+char	*get_regular_var_name(char *str, int *i, int *len)
 {
 	char	*var_name;
 
@@ -189,7 +189,7 @@ int	find_var_end(char *str)
     return i;
 }
 
-static char	*handle_single_quote(char *result, char *str, int *i, int heredoc)
+char	*handle_single_quote(char *result, char *str, int *i, int heredoc)
 {
 	char	*tmp;
 	char	curr[2];
@@ -207,7 +207,7 @@ static char	*handle_single_quote(char *result, char *str, int *i, int heredoc)
 	return (tmp);
 }
 
-static char	*handle_double_quote(char *result, char *str, int *i, int heredoc)
+char	*handle_double_quote(char *result, char *str, int *i, int heredoc)
 {
 	char	*tmp;
 	char	curr[2];
@@ -225,7 +225,7 @@ static char	*handle_double_quote(char *result, char *str, int *i, int heredoc)
 	return (tmp);
 }
 
-static char	*handle_double_dollar(char *result, int *i)
+char	*handle_double_dollar(char *result, int *i)
 {
 	char	*tmp;
 
@@ -235,7 +235,7 @@ static char	*handle_double_dollar(char *result, int *i)
 	return (tmp);
 }
 
-static char	*process_single_quote_section(char *result, char *quoted_section)
+char	*process_single_quote_section(char *result, char *quoted_section)
 {
 	char	*tmp;
 
@@ -244,7 +244,7 @@ static char	*process_single_quote_section(char *result, char *quoted_section)
 	return (tmp);
 }
 
-static char	*process_double_quote_section(char *result, char *quoted_section,
+char	*process_double_quote_section(char *result, char *quoted_section,
 	char **env, int status)
 {
 	char	*expanded_section;
@@ -257,7 +257,7 @@ static char	*process_double_quote_section(char *result, char *quoted_section,
 	return (tmp);
 }
 
-static char	*handle_dollar_quote(char *result, char *str, int *i, char **env,
+char	*handle_dollar_quote(char *result, char *str, int *i, char **env,
 	int status)
 {
 	char	quote_char;
@@ -291,7 +291,7 @@ static char	*handle_dollar_quote(char *result, char *str, int *i, char **env,
 	}
 }
 
-static char	*handle_exit_status(char *result, int *i, int status)
+char	*handle_exit_status(char *result, int *i, int status)
 {
 	char	*tmp;
 	char	*status_str;
@@ -309,7 +309,7 @@ static char	*handle_exit_status(char *result, int *i, int status)
 	return (tmp);
 }
 
-static char	*handle_braced_var(char *result, char *str, int *i, char **env,
+char	*handle_braced_var(char *result, char *str, int *i, char **env,
 	int status)
 {
 	int		start;
@@ -346,7 +346,7 @@ static char	*handle_braced_var(char *result, char *str, int *i, char **env,
 	}
 }
 
-static char	*handle_regular_var(char *result, char *str, int *i, char **env,
+char	*handle_regular_var(char *result, char *str, int *i, char **env,
 	int status)
 {
 	int		start;
@@ -373,7 +373,7 @@ static char	*handle_regular_var(char *result, char *str, int *i, char **env,
 	return (result);
 }
 
-static char	*handle_literal_dollar(char *result, int *i)
+char	*handle_literal_dollar(char *result, int *i)
 {
 	char	*tmp;
 
@@ -383,7 +383,7 @@ static char	*handle_literal_dollar(char *result, int *i)
 	return (tmp);
 }
 
-static char	*handle_regular_char(char *result, char *str, int *i)
+char	*handle_regular_char(char *result, char *str, int *i)
 {
 	char	*tmp;
 	char	curr[2];
@@ -396,7 +396,7 @@ static char	*handle_regular_char(char *result, char *str, int *i)
 	return (tmp);
 }
 
-static char	*handle_dollar_cases(char *result, char *str, int *i, char **env,
+char	*handle_dollar_cases(char *result, char *str, int *i, char **env,
 	int status, int *doll)
 {
 	if (str[*i + 1] == '$')
@@ -415,48 +415,53 @@ static char	*handle_dollar_cases(char *result, char *str, int *i, char **env,
 	return (handle_literal_dollar(result, i));
 }
 
-static char	*process_character(char *result, char *str, int *i, char **env,
-	int status, int *doll, int *in_single_quote, int *in_double_quote,
-	int heredoc)
+char	*process_character(char *result, char *str, int *i,
+	t_expand_context *ctx)
 {
-	if (str[*i] == '\'' && !*in_double_quote)
+	if (str[*i] == '\'' && !*ctx->in_double_quote)
 	{
-		*in_single_quote = !*in_single_quote;
-		return (handle_single_quote(result, str, i, heredoc));
+		*ctx->in_single_quote = !*ctx->in_single_quote;
+		return (handle_single_quote(result, str, i, ctx->heredoc));
 	}
-	if (str[*i] == '"' && !*in_single_quote)
+	if (str[*i] == '"' && !*ctx->in_single_quote)
 	{
-		*in_double_quote = !*in_double_quote;
-		return (handle_double_quote(result, str, i, heredoc));
+		*ctx->in_double_quote = !*ctx->in_double_quote;
+		return (handle_double_quote(result, str, i, ctx->heredoc));
 	}
-	if (str[*i] == '$' && (heredoc == 1 || !*in_single_quote))
-		return (handle_dollar_cases(result, str, i, env, status, doll));
+	if (str[*i] == '$' && (ctx->heredoc == 1 || !*ctx->in_single_quote))
+		return (handle_dollar_cases(result, str, i, ctx->env, ctx->status, ctx->doll));
 	return (handle_regular_char(result, str, i));
 }
 
 char *expand_string(char *str, char **env, int status, int heredoc)
 {
-	char	*result;
-	int		i;
-	int		in_single_quote;
-	int		in_double_quote;
-	int		doll;
+	t_expand_context	ctx;
+	int					i;
+	int					in_single_quote;
+	int					in_double_quote;
+	int					doll;
 
 	if (!str)
 		return (NULL);
-	result = ft_strdup("");
-	if (!result)
+	ctx.result = ft_strdup("");
+	if (!ctx.result)
 		return (NULL);
 	i = 0;
 	in_single_quote = 0;
 	in_double_quote = 0;
-	doll = 0; // Keeping this for compatibility with function signature
+	doll = 0;
+	ctx.env = env;
+	ctx.status = status;
+	ctx.doll = &doll;
+	ctx.in_single_quote = &in_single_quote;
+	ctx.in_double_quote = &in_double_quote;
+	ctx.heredoc = heredoc;
+	ctx.i = &i;
 	while (str[i])
 	{
-		result = process_character(result, str, &i, env, status, &doll,
-				&in_single_quote, &in_double_quote, heredoc);
+		ctx.result = process_character(ctx.result, str, &i, &ctx);
 	}
-	return (result);
+	return (ctx.result);
 }
 
 char	**expand(char **argv, char **env, int status)
