@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cd_handler.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yel-qori <yel-qori@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/31 20:34:32 by yel-qori          #+#    #+#             */
-/*   Updated: 2025/07/31 21:28:01 by yel-qori         ###   ########.fr       */
+/*   Updated: 2025/08/02 19:16:36 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,10 +26,7 @@ int	change_to_home(char ***env, char *cwd)
 	if (check_dir_x(&file_stat, path))
 	{
 		if (chdir(path) == -1)
-		{
-			print_cd_error(path, 3);
-			return (1);
-		}
+			return (print_cd_error(path, 3), 1);
 	}
 	else
 	{
@@ -65,10 +62,7 @@ static int	change_to_oldpwd(char ***env, char *cwd)
 	}
 	else
 	{
-		if (access(path, F_OK) == -1)
-			print_cd_error(path, 1);
-		else
-			print_cd_error(path, 2);
+		check_path(path);
 		return (1);
 	}
 	return (0);

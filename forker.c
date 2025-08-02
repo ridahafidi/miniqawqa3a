@@ -1,18 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   execution.c                                        :+:      :+:    :+:   */
+/*   forker.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 16:52:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 15:42:23 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 19:20:12 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
- void	handle_empty_command(t_fd *fd)
+void	handle_empty_command(t_fd *fd)
 {
 	int	saved_stdin;
 	int	saved_stdout;
@@ -26,7 +26,7 @@
 	close(saved_stdout);
 }
 
- void	handle_builtin_command(t_tree *root, t_data *data, int *exit_status)
+void	handle_builtin_command(t_tree *root, t_data *data, int *exit_status)
 {
 	int	saved_stdin;
 	int	saved_stdout;
@@ -50,7 +50,7 @@
 	close(saved_stdout);
 }
 
- void	handle_child_process(t_tree *root, t_data *data)
+void	handle_child_process(t_tree *root, t_data *data)
 {
 	signal(SIGINT, child_sigint_handler);
 	signal(SIGQUIT, SIG_DFL);
@@ -66,10 +66,10 @@
 	execute_command(root, data, NULL);
 }
 
- void	handle_parent_process(int pid, int *exit_status)
+void	handle_parent_process(int pid, int *exit_status)
 {
-	int status;
-	
+	int	status;
+
 	waitpid(pid, &status, 0);
 	if (WIFSIGNALED(status))
 	{

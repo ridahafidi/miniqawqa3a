@@ -1,20 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   heredoc.c                                          :+:      :+:    :+:   */
+/*   heredoc_handler.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/02 17:42:52 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 17:43:06 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 19:20:32 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-
-void	write_heredoc_line(char *line, char *delimiter, int pipefd,
-	char **env)
+void	write_heredoc_line(char *line, char *delimiter, int pipefd, char **env)
 {
 	char	**expanded;
 
@@ -32,8 +30,7 @@ void	write_heredoc_line(char *line, char *delimiter, int pipefd,
 	}
 }
 
-int	heredoc_loop(char *tmp_delimiter, int pipefd, char **env,
-	char *delimiter)
+int	heredoc_loop(char *tmp_delimiter, int pipefd, char **env, char *delimiter)
 {
 	char	*line[2];
 

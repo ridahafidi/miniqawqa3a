@@ -6,13 +6,14 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/02 17:45:12 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 17:46:49 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 19:16:07 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-t_tree	*check_ambiguous_redirection(t_tree *root, t_tree *cmd, int *exit_status)
+t_tree	*check_ambiguous_redirection(t_tree *root, t_tree *cmd,
+		int *exit_status)
 {
 	if (root->file_name && !root->file_name[0])
 	{
@@ -44,7 +45,8 @@ void	append(t_tree *root, int *in, int *out, int *exit_status)
 	}
 }
 
-int	handle_heredoc_redirection(t_tree *root, int *in, char **env, int *exit_status)
+int	handle_heredoc_redirection(t_tree *root, int *in, char **env,
+		int *exit_status)
 {
 	if (*in != STDIN_FILENO)
 		close(*in);
@@ -75,7 +77,9 @@ t_tree	*handle_append_heredoc(t_tree *root, t_data *data, int *exit_status)
 		return (cmd);
 	}
 	else if (root->type == HEREDOC && root->file_name)
-	{                if (handle_heredoc_redirection(root, &data->fds->in, data->env[0], exit_status) == -1)
+	{
+		if (handle_heredoc_redirection(root, &data->fds->in, data->env[0],
+				exit_status) == -1)
 			return (NULL);
 	}
 	return (cmd);

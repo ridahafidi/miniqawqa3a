@@ -12,16 +12,16 @@
 
 #include "minishell.h"
 
-int ft_pwd(char **argv)
+int	ft_pwd(char **argv)
 {
-    char cwd[4096];
-    
-    if (!getcwd(cwd, sizeof(cwd)))
-    {
-        perror("getcwd failed ");
-        return (1);
-    }
-    ft_putstr_fd(cwd, STDOUT_FILENO);
-    ft_putstr_fd("\n", STDOUT_FILENO);
-    return (0);
+	char	cwd[4096];
+
+	if (!getcwd(cwd, sizeof(cwd)))
+	{
+		perror("getcwd failed ");
+		return (1);
+	}
+	ft_putstr_fd(cwd, STDOUT_FILENO);
+	ft_putstr_fd("\n", STDOUT_FILENO);
+	return (0);
 }

@@ -12,19 +12,19 @@
 
 #include "minishell.h"
 
-void    free_array(char **str)
+void	free_array(char **str)
 {
-    int i;
+	int	i;
 
-    i = 0;
-    while (str[i])
-    {
-        free(str[i]);
-        str[i] = NULL;
-        i++;
-    }
-    free(str);
-    str = NULL;
+	i = 0;
+	while (str[i])
+	{
+		free(str[i]);
+		str[i] = NULL;
+		i++;
+	}
+	free(str);
+	str = NULL;
 }
 
 char	*get_env_path(char **env)
@@ -41,7 +41,7 @@ char	*get_env_path(char **env)
 	return (NULL);
 }
 
-char    *get_path(char *cmd, char **env)
+char	*get_path(char *cmd, char **env)
 {
 	char	*path;
 	char	**dir;
@@ -70,7 +70,7 @@ char    *get_path(char *cmd, char **env)
 	return (NULL);
 }
 
- char	*get_command_path(t_tree *root, char **env, char **exported, int i)
+char	*get_command_path(t_tree *root, char **env, char **exported, int i)
 {
 	if (handle_dot_command(root, env, exported, i))
 		return (NULL);

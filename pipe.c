@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/02 15:38:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 15:40:11 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 19:21:00 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 
 void	close_wait(int *pfd, t_pid *pid, t_fd *fd, int *exit_status)
 {
-	int status;
-	
+	int	status;
+
 	close(pfd[0]);
 	close(pfd[1]);
 	waitpid(pid->left_pid, NULL, 0);
@@ -53,7 +53,8 @@ void	handle_left_pipe(t_tree *root, t_data *data, int *pfd, int *exit_status)
 	exit(*exit_status);
 }
 
-void	handle_right_pipe(t_tree *root,t_data *data, int *pfd, int *exit_status)
+void	handle_right_pipe(t_tree *root, t_data *data, int *pfd,
+		int *exit_status)
 {
 	signal(SIGINT, SIG_DFL);
 	signal(SIGQUIT, SIG_DFL);
@@ -72,6 +73,7 @@ void	handle_right_pipe(t_tree *root,t_data *data, int *pfd, int *exit_status)
 		free(data);
 	exit(*exit_status);
 }
+
 void	handle_pipe(t_data *data, t_tree *root, int *exit_status)
 {
 	int		pfd[2];
@@ -86,7 +88,7 @@ void	handle_pipe(t_data *data, t_tree *root, int *exit_status)
 			free(data->fds);
 		if (data)
 			free(data);
-		return;
+		return ;
 	}
 	pipein(pfd);
 	data->pid->left_pid = fork();

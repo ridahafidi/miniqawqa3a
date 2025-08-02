@@ -12,7 +12,8 @@
 
 #include "minishell.h"
 
- void	handle_redirection_execution(t_tree *cmd, t_data *data, int *exit_status)
+void	handle_redirection_execution(t_tree *cmd, t_data *data,
+		int *exit_status)
 {
 	if (cmd)
 		forker(cmd, data, exit_status);
@@ -24,7 +25,7 @@
 		close(data->fds->out);
 }
 
- void	handle_redirection_error(t_fd *fd)
+void	handle_redirection_error(t_fd *fd)
 {
 	if (fd->in != STDIN_FILENO)
 		close(fd->in);

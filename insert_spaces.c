@@ -14,23 +14,23 @@
 
 char	get_current_quote_state(char *input, int pos)
 {
-    int		i;
-    char	quote;
+	int		i;
+	char	quote;
 
-    i = 0;
-    quote = 0;
-    while (i < pos)
-    {
-        if (input[i] == '\'' || input[i] == '"')
-        {
-            if (quote == 0)
-                quote = input[i];
-            else if (input[i] == quote)
-                quote = 0;
-        }
-        i++;
-    }
-    return (quote);
+	i = 0;
+	quote = 0;
+	while (i < pos)
+	{
+		if (input[i] == '\'' || input[i] == '"')
+		{
+			if (quote == 0)
+				quote = input[i];
+			else if (input[i] == quote)
+				quote = 0;
+		}
+		i++;
+	}
+	return (quote);
 }
 
 int	process_operator_in_result(char *input, char *result, int i, int j)

@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 15:39:56 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 17:47:18 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 19:21:30 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,8 +53,8 @@ void	less_and_greater(t_tree *root, int *in, int *out, int *exit_status)
 t_tree	*handle_greater_less(t_tree *root, t_data *data, int *exit_status)
 {
 	t_tree	*cmd;
-	int *in;
-	int *out;
+	int		*in;
+	int		*out;
 
 	in = &data->fds->in;
 	out = &data->fds->out;

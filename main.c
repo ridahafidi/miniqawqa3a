@@ -26,7 +26,7 @@ void	handle_null_input(char ***env, char ***exported, int exit_status)
 	ctrl_d_handle(0, exit_status);
 }
 
-void    shell_loop(char ***env, char ***exported, int *exit_status)
+void	shell_loop(char ***env, char ***exported, int *exit_status)
 {
 	char	*input;
 	char	exit;
@@ -49,23 +49,25 @@ void    shell_loop(char ***env, char ***exported, int *exit_status)
 	clear_history();
 }
 
-int main(int ac, char **av, char **env) 
+int	main(int ac, char **av, char **env)
 {
-    (void)av;
-    (void)ac;
-    char **my_env;
-    int exit_status = 0;
-    
-    g_signum = 0;
-    signal(SIGINT, sigint_handler);
-    signal(SIGQUIT, SIG_IGN);
-    my_env = copy_env(env);
-    update_shlvl(&my_env);
-    if (!my_env[0])
-        my_env = handle_env_i();
-    char **exported = copy_env(env);
-    shell_loop(&my_env, &exported, &exit_status);
-    free_array(my_env);
-    free_array(exported);
-    return exit_status;
+	char	**my_env;
+	int		exit_status;
+	char	**exported;
+
+	(void)av;
+	(void)ac;
+	exit_status = 0;
+	g_signum = 0;
+	signal(SIGINT, sigint_handler);
+	signal(SIGQUIT, SIG_IGN);
+	my_env = copy_env(env);
+	update_shlvl(&my_env);
+	if (!my_env[0])
+		my_env = handle_env_i();
+	exported = copy_env(env);
+	shell_loop(&my_env, &exported, &exit_status);
+	free_array(my_env);
+	free_array(exported);
+	return (exit_status);
 }

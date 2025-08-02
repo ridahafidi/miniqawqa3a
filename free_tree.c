@@ -12,28 +12,30 @@
 
 #include "minishell.h"
 
-void    free_tree(t_tree **root)
+void	free_tree(t_tree **root)
 {
-    int i = 0;
-    if (!*root || !root)
-        return ;
-        free_tree(&(*root)->left);
-        free_tree(&(*root)->right);
-        if ((*root)->type != HEREDOC)
-        {
-            if ((*root)->command)
-            {
-                while ((*root)->command[i])
-                {
-                    if ((*root)->command[i])
-                    free((*root)->command[i]);
-                    i++;
-                }    
-            }
-        }
-    if((*root)->command)
-    free((*root)->command);
-    if ((*root)->file_name)
-    free((*root)->file_name);
-    free((*root));
+	int	i;
+
+	i = 0;
+	if (!*root || !root)
+		return ;
+	free_tree(&(*root)->left);
+	free_tree(&(*root)->right);
+	if ((*root)->type != HEREDOC)
+	{
+		if ((*root)->command)
+		{
+			while ((*root)->command[i])
+			{
+				if ((*root)->command[i])
+					free((*root)->command[i]);
+				i++;
+			}
+		}
+	}
+	if ((*root)->command)
+		free((*root)->command);
+	if ((*root)->file_name)
+		free((*root)->file_name);
+	free((*root));
 }

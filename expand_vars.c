@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/02 17:05:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 17:10:26 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 19:19:52 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,8 @@ char	*get_regular_var_name(char *str, int *i, int *len)
 {
 	char	*var_name;
 
-	while (str[*i + *len] && (ft_isalnum(str[*i + *len]) || str[*i + *len] == '_'))
+	while (str[*i + *len] && (ft_isalnum(str[*i + *len]) || str[*i
+				+ *len] == '_'))
 		(*len)++;
 	if (*len == 0)
 		return (NULL);
@@ -68,31 +69,28 @@ char	*get_var_name(char *str)
 
 char	*get_var_value(char *var_name, char **env, int status)
 {
-    int     i;
-    char    *value;
-    char    *status_str;
+	int		i;
+	char	*value;
+	char	*status_str;
 
-    if (!var_name)
-        return ft_strdup("$");
-    
-    if (!ft_strcmp(var_name, "?"))
-    {
-        status_str = ft_itoa(status);
-        return status_str;
-    }
-
-    if (!ft_strcmp(var_name, "$"))
-    {
-        return ft_strdup("$");
-    }
-
-    i = compare_var_env(var_name, env);
-    if (i >= 0)
-    {
-        value = ft_substr(env[i], find_start(env[i]), ft_strlen(env[i]));
-        return value;
-    }
-    return ft_strdup("");  // Return empty string for unset variables
+	if (!var_name)
+		return (ft_strdup("$"));
+	if (!ft_strcmp(var_name, "?"))
+	{
+		status_str = ft_itoa(status);
+		return (status_str);
+	}
+	if (!ft_strcmp(var_name, "$"))
+	{
+		return (ft_strdup("$"));
+	}
+	i = compare_var_env(var_name, env);
+	if (i >= 0)
+	{
+		value = ft_substr(env[i], find_start(env[i]), ft_strlen(env[i]));
+		return (value);
+	}
+	return (ft_strdup(""));
 }
 
 char	*handle_literal_dollar(char *result, int *i)

@@ -12,19 +12,19 @@
 
 #include "minishell.h"
 
-t_tree *create_command()
+t_tree	*create_command(void)
 {
-	t_tree *node;
-	
+	t_tree	*node;
+
 	node = malloc(sizeof(t_tree));
-    if (!node)
-        return (NULL);
+	if (!node)
+		return (NULL);
 	node->command = NULL;
 	node->file_name = NULL;
-    node->left = NULL;
-    node->right = NULL;
-    node->type = 0;
-    return (node);
+	node->left = NULL;
+	node->right = NULL;
+	node->type = 0;
+	return (node);
 }
 
 int	is_operator(char c)

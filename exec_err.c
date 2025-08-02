@@ -6,13 +6,14 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/02 16:10:50 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 16:11:31 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 19:17:44 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-void	handle_execution_error(t_tree *root, char *path, char **env, char **exported)
+void	handle_execution_error(t_tree *root, char *path, char **env,
+		char **exported)
 {
 	if (path != root->command[0])
 		free(path);
@@ -22,7 +23,8 @@ void	handle_execution_error(t_tree *root, char *path, char **env, char **exporte
 	free_tree(&root);
 }
 
-void	handle_execve_error(t_tree *root, char *path, char **env, char **exported)
+void	handle_execve_error(t_tree *root, char *path, char **env,
+		char **exported)
 {
 	int	i;
 

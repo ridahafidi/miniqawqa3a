@@ -26,7 +26,7 @@ static void	update_shlvl_value(char ***env, int i)
 	env[0][i] = new_shlvl;
 }
 
-void    update_shlvl(char ***env)
+void	update_shlvl(char ***env)
 {
 	int	i;
 
@@ -35,7 +35,7 @@ void    update_shlvl(char ***env)
 		return ;
 	while (env[0][i])
 	{
-		if (!strncmp("SHLVL", env[0][i], ft_strlen("SHLVL") - 1) 
+		if (!strncmp("SHLVL", env[0][i], ft_strlen("SHLVL") - 1)
 			&& env[0][i][ft_strlen("SHLVL")] == '=')
 		{
 			update_shlvl_value(env, i);

@@ -67,7 +67,8 @@ char	*process_single_quote_section(char *result, char *quoted_section)
 	return (tmp);
 }
 
-char	*process_double_quote_section(char *result, char *quoted_section, char **env, int status)
+char	*process_double_quote_section(char *result, char *quoted_section,
+		char **env, int status)
 {
 	char	*expanded_section;
 	char	*tmp;

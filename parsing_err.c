@@ -12,7 +12,6 @@
 
 #include "minishell.h"
 
-
 int	handle_parsing_error(char **tokens, t_data *data, int *exit_status)
 {
 	if (tokens)

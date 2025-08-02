@@ -26,7 +26,7 @@ char	*handle_regular_char(char *result, char *str, int *i)
 }
 
 char	*process_character(char *result, char *str, int *i,
-	t_expand_context *ctx)
+		t_expand_context *ctx)
 {
 	t_dollar_context	dctx;
 
@@ -50,7 +50,7 @@ char	*process_character(char *result, char *str, int *i,
 	return (handle_regular_char(result, str, i));
 }
 
-char *expand_string(char *str, char **env, int status, int heredoc)
+char	*expand_string(char *str, char **env, int status, int heredoc)
 {
 	t_expand_context	ctx;
 	int					i;
