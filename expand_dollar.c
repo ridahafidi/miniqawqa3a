@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/02 17:15:00 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 17:40:06 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 17:58:01 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,12 +37,7 @@ char	*handle_dollar_quote(char *result, char *str, int *i, t_dollar_context *ctx
 		return (result);
 	}
 	else
-	{
-		tmp = ft_strjoin(result, "$");
-		free(result);
-		(*i)++;
-		return (tmp);
-	}
+		return (ret_handle_dollar(result, i));
 }
 
 char	*handle_exit_status(char *result, int *i, int status)
@@ -91,12 +86,7 @@ char	*handle_braced_var(char *result, char *str, int *i, t_dollar_context *ctx)
 		return (result);
 	}
 	else
-	{
-		tmp = ft_strjoin(result, "$");
-		free(result);
-		(*i)++;
-		return (tmp);
-	}
+		return (ret_handle_dollar(result, i));
 }
 
 char	*handle_regular_var(char *result, char *str, int *i,

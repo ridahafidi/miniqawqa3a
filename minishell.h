@@ -6,7 +6,7 @@
 /*   By: rhafidi <rhafidi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/14 15:23:36 by rhafidi           #+#    #+#             */
-/*   Updated: 2025/08/02 17:47:39 by rhafidi          ###   ########.fr       */
+/*   Updated: 2025/08/02 17:56:55 by rhafidi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,8 @@ typedef struct s_dollar_context
 	int		status;
 	int		*doll;
 }	t_dollar_context;
+
+char 	*ret_handle_dollar(char *result, int *i);
 int	handle_heredoc(char *delimiter, char **env);
 t_tree	*check_ambiguous_redirection(t_tree *root, t_tree *cmd, int *exit_status);
 t_tree	*handle_append_heredoc(t_tree *root, t_data *data, int *exit_status);
